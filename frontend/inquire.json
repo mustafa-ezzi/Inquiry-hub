@@ -1,0 +1,389 @@
+{
+  "brand": {
+    "name": "InquireHub.PK",
+    "shortName": "IH"
+  },
+  "header": {
+    "searchLabel": "Search for tools, electrical, plumbing items...",
+    "actions": [
+      {
+        "id": "account",
+        "label": "Account"
+      },
+      {
+        "id": "cart",
+        "label": "Cart"
+      }
+    ]
+  },
+  "hero": {
+    "eyebrow": "Verified B2B Marketplace",
+    "heading": "Find Trusted Hardware Suppliers Across Pakistan",
+    "description": "Connect directly with verified vendors and get the best wholesale deals",
+    "primaryAction": "Post Your Inquiry",
+    "secondaryAction": "Browse Categories",
+    "searchLabel": "Search for tools, electrical, plumbing items...",
+    "highlightCards": [
+      {
+        "id": "highlight-1",
+        "title": "Verified supplier network",
+        "description": "Discover trusted hardware vendors serving wholesale buyers across Pakistan."
+      },
+      {
+        "id": "highlight-2",
+        "title": "Fast quote discovery",
+        "description": "Shortlist products, send inquiries, and compare supplier responses quickly."
+      }
+    ],
+    "statCards": [
+      {
+        "id": "stat-1",
+        "value": "",
+        "label": "Active categories"
+      },
+      {
+        "id": "stat-2",
+        "value": "",
+        "label": "Listed products"
+      },
+      {
+        "id": "stat-3",
+        "value": "",
+        "label": "Verified vendors"
+      }
+    ]
+  },
+  "sections": {
+    "categories": {
+      "title": "Categories",
+      "description": "Browse the most in-demand hardware categories from trusted Pakistani suppliers."
+    },
+    "products": {
+      "title": "Featured Products",
+      "description": "Explore top hardware listings available for direct inquiry and wholesale sourcing.",
+      "emptyStateTitle": "No products found",
+      "emptyStateDescription": "Try another product keyword to find matching hardware listings."
+    },
+    "vendors": {
+      "title": "Top Vendors",
+      "description": "Connect with trusted regional suppliers serving wholesale hardware buyers."
+    },
+    "howItWorks": {
+      "title": "How It Works",
+      "description": "A simple three-step flow for sourcing products and reaching suppliers quickly."
+    },
+    "whyChooseUs": {
+      "title": "Why Choose Us",
+      "description": "Built for practical B2B sourcing with direct access to trusted hardware suppliers.",
+      "items": [
+        {
+          "id": "why-1",
+          "title": "Verified Vendors",
+          "description": "All suppliers are verified for trust.",
+          "icon": "shield"
+        },
+        {
+          "id": "why-2",
+          "title": "Direct Contact",
+          "description": "No middleman, deal directly.",
+          "icon": "pipe"
+        },
+        {
+          "id": "why-3",
+          "title": "Best Prices",
+          "description": "Get competitive wholesale rates.",
+          "icon": "bolt"
+        }
+      ]
+    },
+    "cta": {
+      "title": "Are you a hardware supplier? Start selling today",
+      "description": "Register your business, showcase your inventory, and receive inquiries from buyers across Pakistan.",
+      "actionLabel": "Register as Vendor"
+    }
+  },
+  "footer": {
+    "sections": [
+      {
+        "id": "footer-section-1",
+        "title": "InquireHub.PK",
+        "links": [
+          "About Us",
+          "Contact",
+          "Privacy Policy"
+        ]
+      }
+    ],
+    "socialLinks": [
+      "Facebook",
+      "WhatsApp",
+      "LinkedIn"
+    ],
+    "note": "Copyright (c) InquireHub.PK. All rights reserved."
+  },
+  "bottomNav": [
+    {
+      "id": "home",
+      "label": "Home"
+    },
+    {
+      "id": "categories",
+      "label": "Categories"
+    },
+    {
+      "id": "inquiry",
+      "label": "Inquiry"
+    },
+    {
+      "id": "profile",
+      "label": "Profile"
+    }
+  ],
+  "categories": [
+    { "id": 1, "name": "Hand & Power Tools", "icon": "hammer", "subCategories": ["Drills", "Wrenches", "Saws"] },
+    { "id": 2, "name": "Electrical Supplies", "icon": "bolt", "subCategories": ["Cables", "Switchgear", "Lighting"] },
+    { "id": 3, "name": "Plumbing & Sanitary", "icon": "pipe", "subCategories": ["Pipes", "Fittings", "Pumps"] },
+    { "id": 4, "name": "Industrial Machinery", "icon": "gear", "subCategories": ["Compressors", "Lathes", "Generators"] },
+    { "id": 5, "name": "Paint & Chemicals", "icon": "droplet", "subCategories": ["Epoxy", "Primers", "Thinners"] },
+    { "id": 6, "name": "Safety & PPE", "icon": "hard-hat", "subCategories": ["Helmets", "Gloves", "Vests"] },
+    { "id": 7, "name": "Fasteners & Hardware", "icon": "nut-bolt", "subCategories": ["Bolts", "Nails", "Screws"] },
+    { "id": 8, "name": "Solar & Energy", "icon": "sun", "subCategories": ["Panels", "Inverters", "Batteries"] }
+  ],
+  "products": [
+    {
+      "id": 101,
+      "name": "Heavy Duty Electric Drill Machine",
+      "category_id": 1,
+      "price": "Get Quote",
+      "image": "data:image/jpeg;base64,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",
+      "vendor": "Karachi Tools Center",
+      "location": "Karachi"
+    },
+    {
+      "id": 102,
+      "name": "PVC Pipe Fittings Set",
+      "category_id": 3,
+      "price": "Rs 2,400",
+      "image": "data:image/jpeg;base64,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",
+      "vendor": "Lahore Pipe House",
+      "location": "Lahore"
+    },
+    {
+      "id": 103,
+      "name": "Industrial Air Compressor 50L",
+      "category_id": 4,
+      "price": "Rs 45,000",
+      "image": "https://via.placeholder.com/150",
+      "vendor": "Punjab Industrial Suppliers",
+      "location": "Faisalabad"
+    },
+    {
+      "id": 104,
+      "name": "Copper Wiring Coil 4mm",
+      "category_id": 2,
+      "price": "Rs 12,500",
+      "image": "https://via.placeholder.com/150",
+      "vendor": "Pak Electric Market",
+      "location": "Rawalpindi"
+    },
+    {
+      "id": 105,
+      "name": "Industrial Safety Helmet Pack",
+      "category_id": 6,
+      "price": "Rs 3,200",
+      "image": "https://via.placeholder.com/150",
+      "vendor": "Al-Madina Hardware Store",
+      "location": "Karachi"
+    },
+    {
+      "id": 106,
+      "name": "Protective Gloves Bulk Pack",
+      "category_id": 6,
+      "price": "Rs 1,950",
+      "image": "https://via.placeholder.com/150",
+      "vendor": "Al-Madina Hardware Store",
+      "location": "Karachi"
+    },
+    {
+      "id": 107,
+      "name": "Industrial Water Pump",
+      "category_id": 3,
+      "price": "Get Quote",
+      "image": "https://via.placeholder.com/150",
+      "vendor": "Punjab Industrial Suppliers",
+      "location": "Faisalabad"
+    },
+    {
+      "id": 108,
+      "name": "Epoxy Floor Coating Drum",
+      "category_id": 5,
+      "price": "Rs 6,800",
+      "image": "https://via.placeholder.com/150",
+      "vendor": "Karachi Tools Center",
+      "location": "Karachi"
+    },
+    {
+      "id": 109,
+      "name": "Heavy Duty Electric Drill 800W",
+      "category_id": 1,
+      "price": "Get Quote",
+      "stock_status": "In Stock",
+      "moq": "5 Units",
+      "vendor_id": 202,
+      "specs": { "brand": "Ingco", "warranty": "6 Months" }
+    },
+    {
+      "id": 110,
+      "name": "High-Pressure PPRC Pipe 25mm",
+      "category_id": 3,
+      "price": "Rs 850 / length",
+      "stock_status": "In Stock",
+      "moq": "50 lengths",
+      "vendor_id": 204,
+      "specs": { "material": "PPRC", "standard": "DIN 8077" }
+    },
+    {
+      "id": 111,
+      "name": "Diesel Generator 10kVA",
+      "category_id": 4,
+      "price": "Rs 285,000",
+      "stock_status": "Contact for Lead Time",
+      "moq": "1 Unit",
+      "vendor_id": 203,
+      "specs": { "fuel": "Diesel", "phase": "Single/Three" }
+    },
+    {
+      "id": 112,
+      "name": "Solar Panel 550W Mono PERC",
+      "category_id": 8,
+      "price": "Rs 18,500",
+      "stock_status": "In Stock",
+      "moq": "10 Units",
+      "vendor_id": 206,
+      "specs": { "efficiency": "21.5%", "cell_type": "Monocrystalline" }
+    },
+    {
+      "id": 113,
+      "name": "Stainless Steel Bolt M12 x 50mm",
+      "category_id": 7,
+      "price": "Rs 45 / pc",
+      "stock_status": "In Stock",
+      "moq": "500 pcs",
+      "vendor_id": 207,
+      "specs": { "grade": "SS304", "thread": "Full" }
+    },
+    {
+      "id": 114,
+      "name": "Fire Extinguisher 6kg Powder",
+      "category_id": 6,
+      "price": "Rs 4,200",
+      "stock_status": "In Stock",
+      "moq": "2 Units",
+      "vendor_id": 201,
+      "specs": { "type": "Dry Powder", "expiry": "2 Years" }
+    },
+    {
+      "id": 115,
+      "name": "Circuit Breaker 63A MCB",
+      "category_id": 2,
+      "price": "Rs 1,150",
+      "stock_status": "In Stock",
+      "moq": "12 Units",
+      "vendor_id": 205,
+      "specs": { "poles": "Double Pole", "breaking_capacity": "6kA" }
+    }
+  ],
+  "vendors": [
+    {
+      "id": 201,
+      "name": "Al-Madina Hardware Store",
+      "location": "Karachi",
+      "verified": true,
+      "rating": 4.5,
+      "categories_supplied": [
+        5,
+        6
+      ]
+    },
+    {
+      "id": 202,
+      "name": "Karachi Tools Center",
+      "location": "Karachi",
+      "verified": true,
+      "rating": 4.7,
+      "categories_supplied": [
+        1,
+        5
+      ]
+    },
+    {
+      "id": 203,
+      "name": "Punjab Industrial Suppliers",
+      "location": "Faisalabad",
+      "verified": true,
+      "rating": 4.4,
+      "categories_supplied": [
+        3,
+        4
+      ]
+    },
+    {
+      "id": 204,
+      "name": "Lahore Pipe House",
+      "location": "Lahore",
+      "verified": true,
+      "rating": 4.2,
+      "categories_supplied": [
+        3
+      ]
+    },
+    {
+      "id": 205,
+      "name": "Pak Electric Market",
+      "location": "Rawalpindi",
+      "verified": true,
+      "rating": 4.8,
+      "categories_supplied": [
+        2
+      ]
+    },
+    {
+      "id": 206,
+      "name": "Solar Tech Solutions",
+      "location": "Multan",
+      "verified": true,
+      "rating": 4.9,
+      "response_rate": "99%",
+      "specialization": "Renewable Energy"
+    },
+    {
+      "id": 207,
+      "name": "Guiranwala Fastener Hub",
+      "location": "Gujranwala",
+      "verified": false,
+      "rating": 3.9,
+      "response_rate": "70%",
+      "specialization": "Nuts, Bolts & Screws"
+    }
+  ],
+  "how_it_works": [
+    {
+      "step": 1,
+      "title": "Search for products",
+      "description": "Browse tools, electrical, plumbing, and industrial supplies across trusted vendors.",
+      "icon": "hammer"
+    },
+    {
+      "step": 2,
+      "title": "Send inquiry to multiple vendors",
+      "description": "Share your requirement once and reach verified suppliers with a direct inquiry.",
+      "icon": "bolt"
+    },
+    {
+      "step": 3,
+      "title": "Receive quotes and connect directly",
+      "description": "Review vendor responses, compare offers, and continue the deal conversation directly.",
+      "icon": "gear"
+    }
+  ]
+}

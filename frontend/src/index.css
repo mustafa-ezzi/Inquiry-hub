@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  html {
+    font-family: "Segoe UI", sans-serif;
+  }
+
+  body {
+    background-color: #f9fcf9;
+    @apply m-0 min-w-[320px] overflow-x-hidden text-[#111827] antialiased;
+  }
+
+  * {
+    @apply box-border;
+  }
+
+  a {
+    @apply text-inherit no-underline;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply text-[#111827];
+  }
+
+  p,
+  span,
+  li {
+    @apply text-[#111827];
+  }
+
+  .text-secondary {
+    @apply text-[#6b7280];
+  }
+}
+
+@layer components {
+  .app-container {
+    @apply mx-auto w-full max-w-container px-4 md:px-8;
+  }
+
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
