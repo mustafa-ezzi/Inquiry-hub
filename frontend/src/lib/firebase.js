@@ -1,16 +1,47 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 
+const {
+  VITE_FIREBASE_API_KEY,
+  VITE_FIREBASE_AUTH_DOMAIN,
+  VITE_FIREBASE_DATABASE_URL,
+  VITE_FIREBASE_PROJECT_ID,
+  VITE_FIREBASE_STORAGE_BUCKET,
+  VITE_FIREBASE_MESSAGING_SENDER_ID,
+  VITE_FIREBASE_APP_ID,
+  VITE_FIREBASE_MEASUREMENT_ID,
+} = import.meta.env;
+
+const required = [
+  ["VITE_FIREBASE_API_KEY", VITE_FIREBASE_API_KEY],
+  ["VITE_FIREBASE_AUTH_DOMAIN", VITE_FIREBASE_AUTH_DOMAIN],
+  ["VITE_FIREBASE_PROJECT_ID", VITE_FIREBASE_PROJECT_ID],
+  ["VITE_FIREBASE_STORAGE_BUCKET", VITE_FIREBASE_STORAGE_BUCKET],
+  ["VITE_FIREBASE_MESSAGING_SENDER_ID", VITE_FIREBASE_MESSAGING_SENDER_ID],
+  ["VITE_FIREBASE_APP_ID", VITE_FIREBASE_APP_ID],
+];
+
+for (const [name, value] of required) {
+  if (value == null || String(value).trim() === "") {
+    throw new Error(
+      `Missing ${name}. Copy .env.example to .env and set Firebase values from the Firebase console.`
+    );
+  }
+}
+
 const firebaseConfig = {
-  apiKey: "AIzaSyA-fHl6gpwBAsAnPKOe3qRL-tf7Wwiavqk",
-  authDomain: "datacapture-80889.firebaseapp.com",
-  databaseURL:
-    "https://datacapture-80889-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "datacapture-80889",
-  storageBucket: "datacapture-80889.firebasestorage.app",
-  messagingSenderId: "384587628586",
-  appId: "1:384587628586:web:059c1626ef2ddd46fb4353",
-  measurementId: "G-WEZQGDXZNN",
+  apiKey: VITE_FIREBASE_API_KEY,
+  authDomain: VITE_FIREBASE_AUTH_DOMAIN,
+  ...(VITE_FIREBASE_DATABASE_URL?.trim()
+    ? { databaseURL: VITE_FIREBASE_DATABASE_URL.trim() }
+    : {}),
+  projectId: VITE_FIREBASE_PROJECT_ID,
+  storageBucket: VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: VITE_FIREBASE_APP_ID,
+  ...(VITE_FIREBASE_MEASUREMENT_ID?.trim()
+    ? { measurementId: VITE_FIREBASE_MEASUREMENT_ID.trim() }
+    : {}),
 };
 
 const app = initializeApp(firebaseConfig);
