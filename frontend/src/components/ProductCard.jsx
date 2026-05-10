@@ -1,4 +1,5 @@
 import { memo } from "react";
+import { getPrimaryProductImageUrl } from "../lib/productMedia";
 
 function getInitials(str) {
   if (!str) return "??";
@@ -37,6 +38,7 @@ function ProductCard({
   image_urls,
   imageSrc,
   imageAlt,
+  image,
   name,
   price,
   description,
@@ -51,11 +53,12 @@ function ProductCard({
   onInquiry,
   className = "",
 }) {
-  const hasImage =
-    (Array.isArray(image_urls) && image_urls.length > 0) || imageSrc;
-  const imgSrc = Array.isArray(image_urls) && image_urls.length > 0
-    ? image_urls[0]
-    : imageSrc || null;
+  const imgSrc = getPrimaryProductImageUrl({
+    image_urls,
+    imageSrc,
+    image,
+  });
+  const hasImage = Boolean(imgSrc);
 
   const showGetQuote =
     isQuoteOnly ||

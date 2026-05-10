@@ -1,15 +1,7 @@
 import inquiryJson from "../../inquire.json";
-import PlaceholderIcon from "../components/PlaceholderIcon";
+import { mapCategoryIcon } from "../lib/categoryIcons";
 
-const iconMap = {
-  hammer: PlaceholderIcon,
-  bolt: PlaceholderIcon,
-  pipe: PlaceholderIcon,
-  gear: PlaceholderIcon,
-  shield: PlaceholderIcon,
-  "hard-hat": PlaceholderIcon,
-  "nut-bolt": PlaceholderIcon,
-};
+const mapIcon = (iconKey) => mapCategoryIcon(iconKey);
 
 const quoteLabel = "Get Quote";
 const inquiryLabel = "Send Inquiry";
@@ -18,14 +10,6 @@ const unverifiedLabel = "Unverified";
 const viewShopLabel = "View Shop";
 
 export const inquiryData = inquiryJson;
-
-const mapIcon = (iconKey) => iconMap[iconKey] || PlaceholderIcon;
-
-export const categories = inquiryJson.categories.map((category) => ({
-  id: category.id,
-  name: category.name,
-  icon: mapIcon(category.icon),
-}));
 
 export const vendors = inquiryJson.vendors.map((vendor) => ({
   id: vendor.id,

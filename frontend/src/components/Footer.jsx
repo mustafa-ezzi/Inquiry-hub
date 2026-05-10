@@ -1,4 +1,5 @@
 import { memo } from "react";
+import BrandLogo from "./BrandLogo";
 import Container from "./Container";
 import PlaceholderIcon from "./PlaceholderIcon";
 
@@ -15,9 +16,7 @@ function Footer({ brand, sections, socialLinks, note }) {
             {/* Brand Section */}
             <div className="space-y-6 lg:col-span-4">
               <div className="flex items-center gap-4">
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#0F6B36] text-sm font-bold text-white shadow-lg shadow-[#0F6B36]/20">
-                  {brand.shortName}
-                </span>
+                <BrandLogo brand={brand} size="lg" showWordmark={false} />
                 <div>
                   <p className="text-lg font-bold tracking-tight text-slate-900">
                     {brand.name}

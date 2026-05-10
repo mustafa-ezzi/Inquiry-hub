@@ -1,4 +1,5 @@
 import { memo } from "react";
+import BrandLogo from "./BrandLogo";
 import Container from "./Container";
 import PlaceholderIcon from "./PlaceholderIcon";
 import SearchBar from "./SearchBar";
@@ -17,12 +18,11 @@ function Header({ brand, searchLabel, actions, searchValue, onSearchChange }) {
             href="#top"
             className="group flex shrink-0 items-center gap-3 transition-opacity hover:opacity-90"
           >
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0F6B36] text-sm font-bold text-white shadow-lg shadow-[#0F6B36]/20 transition-transform group-hover:scale-105">
-              {brand.shortName}
-            </div>
-            <span className="hidden text-base font-bold tracking-tight text-slate-900 lg:inline">
-              {brand.name}
-            </span>
+            <BrandLogo
+              brand={brand}
+              wordmarkClassName="hidden lg:inline max-w-[10rem] truncate sm:max-w-none"
+              className="gap-3 transition-transform group-hover:scale-[1.02]"
+            />
           </a>
 
           {/* Search Section */}

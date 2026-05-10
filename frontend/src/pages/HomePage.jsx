@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import BottomNav from "../components/BottomNav";
 import Footer from "../components/Footer";
 import FilterBar from "../components/FilterBar";
@@ -6,19 +6,20 @@ import Header from "../components/Header";
 import MobileCategoryDrawer from "../components/MobileCategoryDrawer";
 import SidebarCategories from "../components/SidebarCategories";
 import {
-  categories,
   fallbackProducts,
   siteContent,
-  vendors,
 } from "../data/inquiryData";
+import { productMatchesCategory } from "../lib/productCategory";
+import { fetchCategories } from "../services/categoriesService";
 import { fetchProducts } from "../services/productService";
+import { fetchShops } from "../services/shopsService";
 import CTASection from "../sections/CTASection";
 import FeaturedProductsSection from "../sections/FeaturedProductsSection";
 import HeroSection from "../sections/HeroSection";
 import HowItWorks from "../sections/HowItWorks";
 import TopVendorsSection from "../sections/TopVendorsSection";
 import WhyChooseUs from "../sections/WhyChooseUs";
-import { useRef } from "react";
+
 function HomePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategoryId, setActiveCategoryId] = useState(null);
@@ -32,6 +33,48 @@ function HomePage() {
   const [lastDoc, setLastDoc] = useState(null);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const [shops, setShops] = useState([]);
+  const [isLoadingShops, setIsLoadingShops] = useState(true);
+  const [shopsError, setShopsError] = useState("");
+  const [categories, setCategories] = useState([]);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(true);
+
+  const loadCategories = useCallback(async () => {
+    try {
+      const list = await fetchCategories();
+      setCategories(list);
+    } catch (err) {
+      console.error(err);
+      setCategories([]);
+    } finally {
+      setIsLoadingCategories(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadCategories();
+  }, [loadCategories]);
+
+  const loadShops = useCallback(async () => {
+    setShopsError("");
+    try {
+      const list = await fetchShops();
+      setShops(list);
+    } catch (err) {
+      console.error(err);
+      setShops([]);
+      setShopsError(
+        "Could not load shops. Check your connection and Firestore rules."
+      );
+    } finally {
+      setIsLoadingShops(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadShops();
+  }, [loadShops]);
+
   useEffect(() => {
     let isMounted = true;
 
@@ -120,13 +163,13 @@ function HomePage() {
         }
 
         if (card.id === "stat-3") {
-          return { ...card, value: String(vendors.length) };
+          return { ...card, value: String(shops.length) };
         }
 
         return card;
       }),
     }),
-    [products.length]
+    [products.length, shops.length, categories.length]
   );
 
   const locationOptions = useMemo(
@@ -156,7 +199,8 @@ function HomePage() {
 
       return (
         name.toLowerCase().includes(normalizedQuery) &&
-        (!activeCategoryId || product.categoryId === activeCategoryId) &&
+        (!activeCategoryId ||
+          productMatchesCategory(product, activeCategoryId, categories)) &&
         (!locationFilter || location === locationFilter) &&
         (() => {
           if (!priceFilter) return true;
@@ -174,7 +218,14 @@ function HomePage() {
         })()
       );
     });
-  }, [products, normalizedQuery, activeCategoryId, locationFilter, priceFilter]);
+  }, [
+    products,
+    normalizedQuery,
+    activeCategoryId,
+    locationFilter,
+    priceFilter,
+    categories,
+  ]);
 
   const handleSearchChange = useCallback((event) => {
     setSearchQuery(event.target.value);
@@ -191,7 +242,7 @@ function HomePage() {
 
   const handleCategoryFilterChange = useCallback((event) => {
     const nextValue = event.target.value;
-    setActiveCategoryId(nextValue ? Number(nextValue) : null);
+    setActiveCategoryId(nextValue === "" ? null : nextValue);
   }, []);
 
   const handleLocationChange = useCallback((event) => {
@@ -238,6 +289,7 @@ function HomePage() {
       locationOptions,
       priceFilter,
       searchQuery,
+      categories,
     ]
   );
 
@@ -262,6 +314,7 @@ function HomePage() {
             title={sections.categories.title}
             description={sections.categories.description}
             items={categories}
+            isLoading={isLoadingCategories}
             activeCategoryId={activeCategoryId}
             onSelectCategory={handleCategorySelect}
           />
@@ -272,6 +325,7 @@ function HomePage() {
                 title={sections.categories.title}
                 description={sections.categories.description}
                 items={categories}
+                isLoading={isLoadingCategories}
                 activeCategoryId={activeCategoryId}
                 onSelectCategory={handleCategorySelect}
                 onOpenChange={handleMobileDrawerChange}
@@ -294,7 +348,10 @@ function HomePage() {
             <TopVendorsSection
               title={sections.vendors.title}
               description={sections.vendors.description}
-              items={vendors}
+              items={shops}
+              isLoading={isLoadingShops}
+              errorMessage={shopsError}
+              onShopsRefresh={loadShops}
             />
             <HowItWorks
               title={sections.howItWorks.title}

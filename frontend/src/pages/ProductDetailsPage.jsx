@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { siteContent } from "../data/inquiryData";
+import { getPrimaryProductImageUrl } from "../lib/productMedia";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import BottomNav from "../components/BottomNav";
@@ -164,6 +165,8 @@ function ProductDetailsPage() {
         product.variants_color?.length > 0 || product.variants_size?.length > 0;
     const hasMeasurements = product.measurements?.length > 0;
 
+    const primaryImageUrl = getPrimaryProductImageUrl(product);
+
     return (
         <div className="min-h-screen bg-background">
             {header}
@@ -191,16 +194,29 @@ function ProductDetailsPage() {
                 <div className="grid gap-6 md:grid-cols-2 md:gap-8">
 
                     {/* Image */}
-                    <div className="relative overflow-hidden rounded-2xl bg-slate-100 aspect-square">
+                    <div className="relative aspect-square overflow-hidden rounded-2xl bg-slate-100">
+                        {primaryImageUrl ? (
                         <img
-                            src={
-                                product.image ||
-                                product.imageSrc ||
-                                "https://via.placeholder.com/500x500?text=Product"
-                            }
-                            alt={product.name}
+                            src={primaryImageUrl}
+                            alt={product.name || "Product"}
                             className="h-full w-full object-cover"
+                            loading="eager"
+                            decoding="async"
                         />
+                        ) : (
+                            <div className="flex h-full w-full items-center justify-center bg-slate-100">
+                                <span className="text-4xl font-bold tracking-wide text-slate-300 sm:text-5xl">
+                                    {(product.name || "?")
+                                        .trim()
+                                        .split(/\s+/)
+                                        .filter(Boolean)
+                                        .slice(0, 2)
+                                        .map((w) => w[0])
+                                        .join("")
+                                        .toUpperCase() || "?"}
+                                </span>
+                            </div>
+                        )}
                         {/* Verified overlay badge */}
                         <span className="absolute left-3.5 top-3.5 inline-flex items-center gap-1.5 rounded-full bg-[#0F6B36] px-3 py-1.5 shadow-sm">
                             <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
