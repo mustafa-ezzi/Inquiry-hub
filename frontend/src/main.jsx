@@ -3,20 +3,19 @@ import ReactDOM from "react-dom/client";
 import { registerSW } from "virtual:pwa-register";
 import App from "./App";
 import "./index.css";
+import {
+  notifyPwaUpdateAvailable,
+  setPwaUpdateHandler,
+} from "./lib/pwaUpdateChannel";
 
 const updateSW = registerSW({
   onNeedRefresh() {
-    if (
-      window.confirm(
-        "A new version of InquireHub is available. Reload now to update?"
-      )
-    ) {
-      void updateSW(true);
-    }
+    notifyPwaUpdateAvailable();
   },
 });
 
-// Expose for debugging in DevTools if needed
+setPwaUpdateHandler(() => updateSW(true));
+
 if (import.meta.env.DEV) {
   globalThis.__updateSW = updateSW;
 }

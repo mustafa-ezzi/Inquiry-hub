@@ -105,21 +105,9 @@ If you do not create `maskable-icon-512x512.png`, remove that icon entry.
 
 Update [src/main.jsx](/d:/Inquiry_Platform/frontend/src/main.jsx) to register the PWA service worker.
 
-**Current behavior (after redeploy):** `vite.config.js` uses `registerType: "prompt"`, and `main.jsx` uses `registerSW` with **`onNeedRefresh`**: when a new service worker is available, the user sees a **browser confirm** (“Reload now to update?”). If they accept, `updateSW(true)` applies the new version and reloads.
+**Current behavior (after redeploy):** `vite.config.js` uses `registerType: "prompt"`. When a new service worker is ready, `main.jsx` fires a **`pwa:update-available`** event; **`PwaUpdateScreen`** (in `App.jsx`) shows a **full-screen animated panel** (“Update available” / “Update now” / “Later”). **Update now** calls `updateSW(true)` and reloads. On each app open and when the tab becomes visible, the app also calls **`registration.update()`** and checks for a **waiting** worker so the screen can appear as soon as possible after a deploy.
 
-To go back to **silent** updates (no dialog), set `registerType: "autoUpdate"` in `vite.config.js` and use `registerSW({ immediate: true })` in `main.jsx` instead.
-
-```js
-import { registerSW } from "virtual:pwa-register";
-
-const updateSW = registerSW({
-  onNeedRefresh() {
-    if (window.confirm("A new version… Reload now?")) {
-      void updateSW(true);
-    }
-  },
-});
-```
+To go back to **silent** updates (no UI), set `registerType: "autoUpdate"` in `vite.config.js`, use `registerSW({ immediate: true })`, and remove or stop rendering `PwaUpdateScreen`.
 
 ## 5. Clean Up `index.html`
 
