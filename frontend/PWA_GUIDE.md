@@ -234,3 +234,26 @@ Files you will likely add:
 - this app already looks mobile-focused, which is good for PWA installability
 - if you later add authentication, saved inquiries, or carts, we should design caching rules carefully so offline behavior does not show stale private data
 
+---
+
+## Troubleshooting: Lighthouse passes but “Install” never appears
+
+### 1. Icon pixel size must match the manifest
+
+Chrome requires that each PNG’s **real width/height** matches the `sizes` value in the web manifest (e.g. `192x192` must be a true 192×192 image). Copying one large `logo.png` to `pwa-192x192.png` **without resizing** often **breaks installability** even when Lighthouse looks fine.
+
+This repo runs **`npm run prebuild`** → `scripts/generate-pwa-icons.mjs` (uses **sharp**) to generate correct **`pwa-192x192.png`**, **`pwa-512x512.png`**, and **`apple-touch-icon.png`** from `public/logo.png` before `vite build`. Redeploy after a fresh build.
+
+### 2. SPA hosting on Vercel
+
+Deep links like `/product/xyz` must serve **`index.html`** when there is no physical file. This repo includes **`vercel.json`** with a fallback rewrite so refreshes and the service worker behave correctly.
+
+### 3. `beforeinstallprompt` (Chrome / Android / desktop)
+
+- The **address-bar install icon** only appears after Chrome’s **engagement** rules (visit again, interact a bit, HTTPS).
+- **Safari on iOS does not fire `beforeinstallprompt`.** Users must use **Share → Add to Home Screen**. The header **“Add to Home”** button explains that.
+
+### 4. Check DevTools for the real error
+
+Open **Application → Manifest**. If anything is invalid (icons, `start_url`, `scope`), Chrome lists it there. Also check the **Console** for red errors (CSP, mixed content, failed SW).
+

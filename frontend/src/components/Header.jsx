@@ -1,6 +1,7 @@
 import { memo } from "react";
 import BrandLogo from "./BrandLogo";
 import Container from "./Container";
+import InstallPwaButton from "./InstallPwaButton";
 import PlaceholderIcon from "./PlaceholderIcon";
 import SearchBar from "./SearchBar";
 
@@ -40,6 +41,7 @@ function Header({ brand, searchLabel, actions, searchValue, onSearchChange }) {
 
           {/* Actions Section */}
           <div className="flex shrink-0 items-center gap-2">
+            <InstallPwaButton />
             {actions.map((action) => (
               <button
                 key={action.id}
