@@ -6,7 +6,9 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: "autoUpdate",
+      // "prompt" = new build waits until user accepts (see main.jsx confirm).
+      // Use "autoUpdate" if you prefer silent refresh with no dialog.
+      registerType: "prompt",
       includeAssets: ["apple-touch-icon.png", "logo.png"],
       workbox: {
         globPatterns: ["**/*.{js,css,html,png,svg,ico,webp,woff2}"],

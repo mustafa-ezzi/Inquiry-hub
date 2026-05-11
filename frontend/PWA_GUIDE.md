@@ -103,25 +103,23 @@ If you do not create `maskable-icon-512x512.png`, remove that icon entry.
 
 ## 4. Register The Service Worker
 
-Update [src/main.jsx](/d:/Inquiry_Platform/frontend/src/main.jsx) to register the PWA service worker:
+Update [src/main.jsx](/d:/Inquiry_Platform/frontend/src/main.jsx) to register the PWA service worker.
+
+**Current behavior (after redeploy):** `vite.config.js` uses `registerType: "prompt"`, and `main.jsx` uses `registerSW` with **`onNeedRefresh`**: when a new service worker is available, the user sees a **browser confirm** (“Reload now to update?”). If they accept, `updateSW(true)` applies the new version and reloads.
+
+To go back to **silent** updates (no dialog), set `registerType: "autoUpdate"` in `vite.config.js` and use `registerSW({ immediate: true })` in `main.jsx` instead.
 
 ```js
-import React from "react";
-import ReactDOM from "react-dom/client";
 import { registerSW } from "virtual:pwa-register";
-import App from "./App";
-import "./index.css";
 
-registerSW({ immediate: true });
-
-ReactDOM.createRoot(document.getElementById("root")).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+const updateSW = registerSW({
+  onNeedRefresh() {
+    if (window.confirm("A new version… Reload now?")) {
+      void updateSW(true);
+    }
+  },
+});
 ```
-
-Later, if you want, you can show an "Update available" toast instead of using the simple immediate registration.
 
 ## 5. Clean Up `index.html`
 
