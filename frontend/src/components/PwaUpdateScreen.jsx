@@ -4,10 +4,6 @@ import {
   subscribePwaUpdateAvailable,
 } from "../lib/pwaUpdateChannel";
 
-/**
- * Full-screen in-app prompt when a new service worker is ready (after redeploy).
- * Also shows if a "waiting" worker already exists when the app opens.
- */
 function PwaUpdateScreen() {
   const [open, setOpen] = useState(false);
   const [entered, setEntered] = useState(false);
@@ -28,7 +24,6 @@ function PwaUpdateScreen() {
 
   useEffect(() => {
     if (!("serviceWorker" in navigator)) return undefined;
-
     let cancelled = false;
 
     const checkWaiting = async () => {
@@ -36,9 +31,7 @@ function PwaUpdateScreen() {
         const reg = await navigator.serviceWorker.getRegistration();
         if (cancelled || !reg?.waiting) return;
         show();
-      } catch {
-        /* ignore */
-      }
+      } catch { /* ignore */ }
     };
 
     const pingUpdate = async () => {
@@ -46,9 +39,7 @@ function PwaUpdateScreen() {
         const reg = await navigator.serviceWorker.getRegistration();
         await reg?.update();
         await checkWaiting();
-      } catch {
-        /* ignore */
-      }
+      } catch { /* ignore */ }
     };
 
     if (document.readyState === "complete") {
@@ -93,71 +84,100 @@ function PwaUpdateScreen() {
       aria-labelledby="pwa-update-title"
       aria-describedby="pwa-update-desc"
     >
+      {/* Backdrop */}
       <button
         type="button"
         aria-label="Dismiss update notice"
         className={[
-          "absolute inset-0 bg-slate-900/55 backdrop-blur-[2px] transition-opacity duration-300 ease-out",
+          "absolute inset-0 transition-opacity duration-300 ease-out",
+          "bg-[#050e18]/80 backdrop-blur-sm",
           entered ? "opacity-100" : "opacity-0",
         ].join(" ")}
         onClick={handleLater}
       />
 
+      {/* Sheet */}
       <div
         className={[
-          "relative z-[1] w-full max-w-md rounded-t-[28px] border border-white/20 bg-white px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-7 shadow-2xl transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] sm:rounded-3xl sm:pb-8",
+          "relative z-[1] w-full max-w-sm mx-4",
+          "rounded-[24px] sm:rounded-[24px]",
+          "bg-white/[0.07] backdrop-blur-2xl",
+          "border border-white/[0.13]",
+          "shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.1)]",
+          "px-7 pb-7 pt-8",
+          "transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
           entered
-            ? "translate-y-0 opacity-100 sm:scale-100"
-            : "translate-y-full opacity-90 sm:translate-y-4 sm:scale-[0.96]",
+            ? "translate-y-0 opacity-100 scale-100"
+            : "translate-y-10 opacity-0 scale-[0.97]",
         ].join(" ")}
       >
-        <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#f0faf5] ring-2 ring-[#0F6B36]/15">
-          <svg
-            width="28"
-            height="28"
-            viewBox="0 0 24 24"
-            fill="none"
-            className="text-[#0F6B36]"
-            aria-hidden
-          >
-            <path
-              d="M12 4v12m0 0l-3-3m3 3l3-3M6 20h12"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+        {/* Icon */}
+        <div className="flex justify-center mb-5">
+          <div className="relative">
+            <div className="w-14 h-14 rounded-2xl bg-[#0F6B36]/25 border border-[#0F6B36]/40 flex items-center justify-center animate-pulse">
+              <svg
+                width="26"
+                height="26"
+                viewBox="0 0 24 24"
+                fill="none"
+                className="text-[#4ade80]"
+                aria-hidden
+              >
+                <path
+                  d="M12 4v12m0 0l-3-3m3 3l3-3M6 20h12"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+            {/* Live badge */}
+            <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-[#22c55e] rounded-full border-2 border-[#0d1f10]" />
+          </div>
         </div>
 
         <h2
           id="pwa-update-title"
-          className="text-center text-xl font-extrabold tracking-tight text-[#111827]"
+          className="text-center text-xl font-semibold tracking-tight text-[#f0fdf4]"
         >
           Update available
         </h2>
         <p
           id="pwa-update-desc"
-          className="mt-2.5 text-center text-sm leading-relaxed text-[#6b7280]"
+          className="mt-2.5 text-center text-sm leading-relaxed text-[#d1fae5]/60"
         >
-          We&apos;ve improved InquireHub. Tap update for the latest version and
-          the best experience.
+          A new version of InquireHub is ready. Update now for the latest
+          improvements and best experience.
         </p>
 
-        <div className="mt-8 flex flex-col gap-3 sm:flex-row-reverse sm:justify-center">
+        <div className="mt-7 flex flex-col gap-2.5">
           <button
             type="button"
             disabled={updating}
             onClick={handleUpdate}
-            className="min-h-[48px] w-full rounded-2xl bg-[#0F6B36] px-6 text-sm font-bold text-white shadow-lg shadow-[#0F6B36]/25 transition-transform duration-200 hover:bg-[#0d5f30] active:scale-[0.98] disabled:opacity-70 sm:min-w-[160px]"
+            className={[
+              "min-h-[48px] w-full rounded-[14px]",
+              "bg-[#0F6B36] text-white text-sm font-medium",
+              "shadow-[0_4px_16px_rgba(15,107,54,0.45),inset_0_1px_0_rgba(255,255,255,0.15)]",
+              "transition-all duration-200 hover:bg-[#0d5f30] active:scale-[0.98]",
+              "disabled:opacity-60",
+            ].join(" ")}
           >
             {updating ? "Updating…" : "Update now"}
           </button>
+
           <button
             type="button"
             disabled={updating}
             onClick={handleLater}
-            className="min-h-[48px] w-full rounded-2xl border border-slate-200 bg-white px-6 text-sm font-semibold text-[#374151] transition-colors hover:bg-slate-50 sm:min-w-[120px]"
+            className={[
+              "min-h-[44px] w-full rounded-[14px]",
+              "bg-white/[0.06] border border-white/[0.12]",
+              "text-[#d1fae5]/70 text-sm",
+              "transition-colors hover:bg-white/[0.1]",
+              "disabled:opacity-50",
+            ].join(" ")}
           >
             Later
           </button>
