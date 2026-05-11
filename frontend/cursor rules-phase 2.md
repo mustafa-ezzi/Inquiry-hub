@@ -76,7 +76,7 @@ Replace ALL placeholder text with realistic marketplace content.
 ### Header
 
 * Logo text: "PakHardware"
-* Search placeholder: "Search for tools, electrical, plumbing items..."
+* Search placeholder: "Search for tools, Metal items..."
 
 ---
 
