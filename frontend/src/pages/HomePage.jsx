@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import BottomNav from "../components/BottomNav";
 import Footer from "../components/Footer";
 import FilterBar from "../components/FilterBar";
@@ -21,6 +22,7 @@ import TopVendorsSection from "../sections/TopVendorsSection";
 import WhyChooseUs from "../sections/WhyChooseUs";
 
 function HomePage() {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategoryId, setActiveCategoryId] = useState(null);
   const [locationFilter, setLocationFilter] = useState("");
@@ -253,15 +255,20 @@ function HomePage() {
     setPriceFilter(event.target.value);
   }, []);
 
-  const handleInquiry = useCallback((product) => {
-    window.alert(
-      `Inquiry started for ${product.name} with ${product.vendorName}.`
-    );
-  }, []);
+  const handleInquiry = useCallback(
+    (product) => {
+      navigate(`/inquiry/${product.id}`);
+    },
+    [navigate]
+  );
 
-  const handleBottomNavSelect = useCallback((itemId) => {
-    setActiveBottomNavItem(itemId);
-  }, []);
+  const handleBottomNavSelect = useCallback(
+    (itemId) => {
+      setActiveBottomNavItem(itemId);
+      if (itemId === "inquiry") navigate("/inquiries");
+    },
+    [navigate]
+  );
 
   const filterBar = useMemo(
     () => (

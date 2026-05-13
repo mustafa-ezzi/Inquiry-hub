@@ -1,4 +1,5 @@
 import { memo } from "react";
+import { Link } from "react-router-dom";
 import BrandLogo from "./BrandLogo";
 import Container from "./Container";
 import InstallPwaButton from "./InstallPwaButton";
@@ -42,6 +43,20 @@ function Header({ brand, searchLabel, actions, searchValue, onSearchChange }) {
           {/* Actions Section */}
           <div className="flex shrink-0 items-center gap-2">
             <InstallPwaButton />
+            <Link
+              to="/inquiries"
+              className="inline-flex min-h-[40px] shrink-0 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 py-2 text-xs font-bold text-[#0F6B36] shadow-sm transition-colors hover:border-[#0F6B36]/30 hover:bg-[#f0faf5] sm:px-3"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+                <path
+                  d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              <span className="hidden sm:inline">Messages</span>
+            </Link>
             {actions.map((action) => (
               <button
                 key={action.id}

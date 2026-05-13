@@ -1,37 +1,12 @@
 import { memo } from "react";
 import { getPrimaryProductImageUrl } from "../lib/productMedia";
+import { measurementTextToDisplay } from "../lib/productMeasurements";
 
 function getInitials(str) {
   if (!str) return "??";
   const words = str.trim().split(/\s+/);
   if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
   return (words[0][0] + words[1][0]).toUpperCase();
-}
-
-/** Firestore/API may send `{ value, unit, label }`, an array of those, or a string */
-function measurementTextToDisplay(input) {
-  if (input == null || input === "") return "";
-  if (typeof input === "string") return input.trim();
-  if (typeof input === "number") return String(input);
-  if (Array.isArray(input)) {
-    return input
-      .map(measurementTextToDisplay)
-      .filter(Boolean)
-      .join(", ");
-  }
-  if (typeof input === "object") {
-    const { unit, label, value } = input;
-    const v =
-      value != null && value !== ""
-        ? typeof value === "object"
-          ? measurementTextToDisplay(value)
-          : String(value).trim()
-        : "";
-    const u = unit != null && unit !== "" ? String(unit).trim() : "";
-    const l = label != null && label !== "" ? String(label).trim() : "";
-    return [v, u, l].filter(Boolean).join(" ").trim();
-  }
-  return "";
 }
 
 function ProductCard({

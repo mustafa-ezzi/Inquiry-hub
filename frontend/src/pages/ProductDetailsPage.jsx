@@ -308,7 +308,11 @@ function ProductDetailsPage() {
                         </div>
 
                         {/* CTA */}
-                        <button className="flex min-h-[50px] w-full items-center justify-center gap-2 rounded-xl bg-[#0F6B36] px-4 text-base font-bold text-white shadow-sm transition-all duration-200 hover:bg-[#0d5f30] hover:shadow-md active:scale-[0.98]">
+                        <button
+                            type="button"
+                            onClick={() => navigate(`/inquiry/${productId}`)}
+                            className="flex min-h-[50px] w-full items-center justify-center gap-2 rounded-xl bg-[#0F6B36] px-4 text-base font-bold text-white shadow-sm transition-all duration-200 hover:bg-[#0d5f30] hover:shadow-md active:scale-[0.98]"
+                        >
                             <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
                                 <path
                                     d="M2 2h2.5l1.5 8h8L16 6H5.5"
