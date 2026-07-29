@@ -142,6 +142,19 @@ export async function attachShopMembership(uid, shopId) {
  */
 export function authErrorMessage(err) {
   const code = err && typeof err === "object" && "code" in err ? err.code : "";
+  const rawMessage =
+    err && typeof err === "object" && "message" in err
+      ? String(err.message)
+      : "";
+
+  if (
+    rawMessage.includes("CONFIGURATION_NOT_FOUND") ||
+    code === "auth/configuration-not-found" ||
+    code === "auth/operation-not-allowed"
+  ) {
+    return "Firebase Authentication is not set up. In Firebase Console → Authentication → Sign-in method, enable Email/Password, then try again.";
+  }
+
   switch (code) {
     case "auth/email-already-in-use":
       return "An account already exists with this email.";
@@ -155,7 +168,9 @@ export function authErrorMessage(err) {
       return "Incorrect email or password.";
     case "auth/too-many-requests":
       return "Too many attempts. Try again later.";
+    case "auth/network-request-failed":
+      return "Network error. Check your connection and try again.";
     default:
-      return err?.message || "Authentication failed. Try again.";
+      return rawMessage || "Authentication failed. Try again.";
   }
 }

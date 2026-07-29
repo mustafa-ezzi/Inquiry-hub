@@ -23,6 +23,12 @@ describe("authErrorMessage", () => {
     expect(authErrorMessage({ code: "auth/invalid-credential" })).toMatch(
       /Incorrect/i
     );
+    expect(
+      authErrorMessage({
+        code: "auth/internal-error",
+        message: "CONFIGURATION_NOT_FOUND",
+      })
+    ).toMatch(/Email\/Password/i);
     expect(authErrorMessage({ message: "boom" })).toBe("boom");
   });
 });

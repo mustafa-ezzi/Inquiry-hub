@@ -56,6 +56,14 @@ firebase emulators:start --only firestore,auth
 
 ## Console checklist
 
-1. Enable **Email/Password** in Firebase Auth.
-2. Deploy Firestore rules before relying on create-shop in production.
-3. Keep API keys as public web config only (already the case with `VITE_*`).
+1. Open [Firebase Console](https://console.firebase.google.com) → your project.
+2. Go to **Build → Authentication** (first visit may ask you to click **Get started**).
+3. Open **Sign-in method** → enable **Email/Password** → **Save**.
+4. Confirm `frontend/.env` values match **Project settings → Your apps** (same `apiKey` / `projectId` / `appId`).
+5. Restart `npm run dev` after any `.env` change.
+6. Deploy Firestore rules before create-shop in production:
+   `firebase deploy --only firestore:rules,storage`
+
+### `CONFIGURATION_NOT_FOUND`
+
+This almost always means Authentication (or Email/Password) was never enabled for that project. Complete steps 2–3 above, then retry register/login.
