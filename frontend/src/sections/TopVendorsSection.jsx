@@ -1,4 +1,5 @@
 import { memo, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import SectionShell from "../components/SectionShell";
 import VendorCard from "../components/VendorCard";
 import CreateShopModal from "../components/CreateShopModal";
@@ -30,6 +31,7 @@ function TopVendorsSection({
   onShopsRefresh,
 }) {
   const [modalOpen, setModalOpen] = useState(false);
+  const navigate = useNavigate();
 
   const toolbar = useMemo(
     () => (
@@ -99,7 +101,12 @@ function TopVendorsSection({
         ) : (
           <div className="grid gap-3 md:grid-cols-2 md:gap-4 lg:grid-cols-3">
             {items.map((vendor) => (
-              <VendorCard key={vendor.id} {...vendor} />
+              <VendorCard
+                key={vendor.id}
+                {...vendor}
+                onViewShop={() => navigate(`/shop/${vendor.id}`)}
+                onClick={() => navigate(`/shop/${vendor.id}`)}
+              />
             ))}
           </div>
         )}

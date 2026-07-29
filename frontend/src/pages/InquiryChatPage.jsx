@@ -60,7 +60,7 @@ function InquiryChatPage() {
 
   const [inquiryId, setInquiryId] = useState(null);
   const [buyerName, setBuyerName] = useState("");
-  const [buyerPhone, setBuyerPhone] = useState("");
+  const [_buyerPhone, setBuyerPhone] = useState("");
   const [messages, setMessages] = useState([]);
   const [onboardingSubmitting, setOnboardingSubmitting] = useState(false);
   const [onboardingError, setOnboardingError] = useState("");

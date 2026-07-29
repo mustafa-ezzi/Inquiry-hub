@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import BottomNav from "../components/BottomNav";
 import Footer from "../components/Footer";
 import FilterBar from "../components/FilterBar";
@@ -23,7 +23,8 @@ import WhyChooseUs from "../sections/WhyChooseUs";
 
 function HomePage() {
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchParams] = useSearchParams();
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
   const [activeCategoryId, setActiveCategoryId] = useState(null);
   const [locationFilter, setLocationFilter] = useState("");
   const [priceFilter, setPriceFilter] = useState("");
@@ -40,14 +41,17 @@ function HomePage() {
   const [shopsError, setShopsError] = useState("");
   const [categories, setCategories] = useState([]);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
+  const [categoriesError, setCategoriesError] = useState("");
 
   const loadCategories = useCallback(async () => {
+    setCategoriesError("");
     try {
       const list = await fetchCategories();
       setCategories(list);
     } catch (err) {
       console.error(err);
       setCategories([]);
+      setCategoriesError("Could not load categories.");
     } finally {
       setIsLoadingCategories(false);
     }
@@ -81,6 +85,7 @@ function HomePage() {
     let isMounted = true;
 
     const loadProducts = async () => {
+      setProductLoadError("");
       try {
         const productItems = await fetchProducts();
 
@@ -88,11 +93,16 @@ function HomePage() {
 
         setProducts(productItems.products);
         setLastDoc(productItems.lastDoc);
-        setHasMore(productItems.products.length === 20); // if less → no more
+        setHasMore(productItems.products.length === 20);
       } catch (error) {
+        console.error(error);
         if (!isMounted) return;
 
         setProducts(fallbackProducts);
+        setHasMore(false);
+        setProductLoadError(
+          "Could not load live products. Showing sample catalog offline."
+        );
       } finally {
         if (isMounted) setIsLoadingProducts(false);
       }
@@ -265,7 +275,16 @@ function HomePage() {
   const handleBottomNavSelect = useCallback(
     (itemId) => {
       setActiveBottomNavItem(itemId);
+      if (itemId === "home") {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
       if (itemId === "inquiry") navigate("/inquiries");
+      if (itemId === "profile") navigate("/vendor-waitlist");
+      if (itemId === "categories") {
+        document
+          .getElementById("top")
+          ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
     },
     [navigate]
   );
@@ -305,7 +324,6 @@ function HomePage() {
       <Header
         brand={siteContent.brand}
         searchLabel={siteContent.header.searchLabel}
-        actions={siteContent.header.actions}
         searchValue={searchQuery}
         onSearchChange={handleSearchChange}
       />
@@ -319,7 +337,11 @@ function HomePage() {
         <div className="mx-auto flex max-w-container flex-col gap-6 px-4 md:px-8 lg:flex-row lg:items-start lg:gap-5">
           <SidebarCategories
             title={sections.categories.title}
-            description={sections.categories.description}
+            description={
+              categoriesError
+                ? categoriesError
+                : sections.categories.description
+            }
             items={categories}
             isLoading={isLoadingCategories}
             activeCategoryId={activeCategoryId}

@@ -1,8 +1,5 @@
-import { useState, useMemo } from "react";
 import ProductGrid from "../components/ProductGrid";
 import SectionShell from "../components/SectionShell";
-
-const PRODUCTS_PER_PAGE = 20;
 
 /* ── Skeleton card ─────────────────────────────────────────── */
 function SkeletonCard() {
@@ -37,111 +34,6 @@ function SkeletonGrid() {
   );
 }
 
-/* ── Pagination ────────────────────────────────────────────── */
-function Pagination({ currentPage, totalPages, onPageChange }) {
-  if (totalPages <= 1) return null;
-
-  const pages = useMemo(() => {
-    const range = [];
-    for (let i = 1; i <= totalPages; i++) {
-      if (
-        i === 1 ||
-        i === totalPages ||
-        (i >= currentPage - 1 && i <= currentPage + 1)
-      ) {
-        range.push(i);
-      }
-    }
-    const withEllipsis = [];
-    let prev = null;
-    for (const i of range) {
-      if (prev && i - prev > 1) withEllipsis.push("...");
-      withEllipsis.push(i);
-      prev = i;
-    }
-    return withEllipsis;
-  }, [currentPage, totalPages]);
-
-  const base =
-    "inline-flex h-9 min-w-[36px] items-center justify-center rounded-xl border px-2.5 text-sm font-semibold transition-all duration-150";
-
-  return (
-    <div className="flex items-center justify-center gap-1.5">
-      <button
-        type="button"
-        disabled={currentPage === 1}
-        onClick={() => onPageChange(currentPage - 1)}
-        aria-label="Previous page"
-        className={[
-          base,
-          currentPage === 1
-            ? "cursor-not-allowed border-slate-200 bg-white text-slate-300"
-            : "border-slate-200 bg-white text-[#0F6B36] hover:border-[#0F6B36]/40 hover:bg-[#f0faf5]",
-        ].join(" ")}
-      >
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <path
-            d="M9 11L5 7L9 3"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </button>
-
-      {pages.map((p, idx) =>
-        p === "..." ? (
-          <span
-            key={`e-${idx}`}
-            className="inline-flex h-9 w-9 items-center justify-center text-sm text-slate-400"
-          >
-            …
-          </span>
-        ) : (
-          <button
-            key={p}
-            type="button"
-            onClick={() => onPageChange(p)}
-            aria-current={p === currentPage ? "page" : undefined}
-            className={[
-              base,
-              p === currentPage
-                ? "border-[#0F6B36] bg-[#0F6B36] text-white shadow-sm"
-                : "border-slate-200 bg-white text-[#374151] hover:border-[#0F6B36]/40 hover:bg-[#f0faf5] hover:text-[#0F6B36]",
-            ].join(" ")}
-          >
-            {p}
-          </button>
-        )
-      )}
-
-      <button
-        type="button"
-        disabled={currentPage === totalPages}
-        onClick={() => onPageChange(currentPage + 1)}
-        aria-label="Next page"
-        className={[
-          base,
-          currentPage === totalPages
-            ? "cursor-not-allowed border-slate-200 bg-white text-slate-300"
-            : "border-slate-200 bg-white text-[#0F6B36] hover:border-[#0F6B36]/40 hover:bg-[#f0faf5]",
-        ].join(" ")}
-      >
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <path
-            d="M5 3L9 7L5 11"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </button>
-    </div>
-  );
-}
-
 /* ── Main section ──────────────────────────────────────────── */
 function FeaturedProductsSection({
   title,
@@ -157,21 +49,6 @@ function FeaturedProductsSection({
   loaderRef,
   isFetchingMore,
 }) {
-  const [currentPage, setCurrentPage] = useState(1);
-
-  const totalPages = Math.ceil((items?.length ?? 0) / PRODUCTS_PER_PAGE);
-
-  const paginatedItems = useMemo(() => {
-    if (!items?.length) return [];
-    const start = (currentPage - 1) * PRODUCTS_PER_PAGE;
-
-    return items.slice(start, start + PRODUCTS_PER_PAGE);
-  }, [items, currentPage]);
-
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
 
   return (
     <SectionShell

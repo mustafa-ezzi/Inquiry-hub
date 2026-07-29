@@ -1,6 +1,8 @@
 import {
   addDoc,
   collection,
+  doc,
+  getDoc,
   getDocs,
   limit,
   orderBy,
@@ -11,8 +13,8 @@ import { db } from "../lib/firebase";
 
 export const SHOPS_COLLECTION = "shops";
 
-/** Maps Firestore document to props expected by VendorCard */
-export function mapShopForCard(id, data) {
+/** Maps Firestore document to props expected by VendorCard / ShopPage */
+export function mapShopForCard(id, data = {}) {
   const shopName = data.shopName || data.shop_name || data.name || "Shop";
   const locationRaw = data.location || data.city || "";
   const isVerified = Boolean(data.isVerified ?? data.verified);
@@ -39,6 +41,17 @@ export async function fetchShops(max = 30) {
   return snapshot.docs.map((docSnap) =>
     mapShopForCard(docSnap.id, docSnap.data())
   );
+}
+
+/**
+ * @param {string} shopId
+ * @returns {Promise<ReturnType<typeof mapShopForCard> | null>}
+ */
+export async function fetchShopById(shopId) {
+  if (!shopId) return null;
+  const snap = await getDoc(doc(db, SHOPS_COLLECTION, shopId));
+  if (!snap.exists()) return null;
+  return mapShopForCard(snap.id, snap.data());
 }
 
 export async function createShop({ shopName, location }) {

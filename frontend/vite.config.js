@@ -6,13 +6,10 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      // "prompt" = new build waits until user accepts (see main.jsx confirm).
-      // Use "autoUpdate" if you prefer silent refresh with no dialog.
       registerType: "prompt",
       includeAssets: ["apple-touch-icon.png", "logo.png"],
       workbox: {
         globPatterns: ["**/*.{js,css,html,png,svg,ico,webp,woff2}"],
-        // SPA: so navigations (e.g. /product/:id) stay installable / offline-shell friendly
         navigateFallback: "/index.html",
         navigateFallbackDenylist: [/^\/api\//],
       },
@@ -44,4 +41,17 @@ export default defineConfig({
       },
     }),
   ],
+  test: {
+    globals: true,
+    environment: "jsdom",
+    setupFiles: "./src/test/setup.js",
+    css: false,
+    pool: "threads",
+    fileParallelism: false,
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "json-summary"],
+      include: ["src/services/**", "src/lib/**"],
+    },
+  },
 });

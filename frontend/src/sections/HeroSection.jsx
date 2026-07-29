@@ -1,6 +1,5 @@
 import { memo } from "react";
 import Container from "../components/Container";
-import SearchBar from "../components/SearchBar";
 
 function HeroSection({
   eyebrow,

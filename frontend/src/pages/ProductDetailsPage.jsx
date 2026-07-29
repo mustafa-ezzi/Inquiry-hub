@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { siteContent } from "../data/inquiryData";
+import { isProductVerified, mapProductRecord } from "../lib/mapProduct";
 import { getPrimaryProductImageUrl } from "../lib/productMedia";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
@@ -30,51 +31,41 @@ function InfoCard({ label, children }) {
     );
 }
 
-function PageShell({ children }) {
-    const { activeBottomNavItem, handleBottomNavSelect } = children.props ?? {};
-    return children;
-}
-
 /* ── skeleton / states ────────────────────────────────────── */
 
-function LoadingState({ nav }) {
+function LoadingState() {
     return (
-        <div className="min-h-screen bg-background">
-            {nav}
-            <div className="flex items-center justify-center py-24">
-                <div className="flex flex-col items-center gap-3">
-                    <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-[#0F6B36] border-t-transparent" />
-                    <p className="text-sm text-slate-500">Loading product…</p>
-                </div>
+        <div className="flex items-center justify-center py-24">
+            <div className="flex flex-col items-center gap-3">
+                <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-[#0F6B36] border-t-transparent" />
+                <p className="text-sm text-slate-500">Loading product…</p>
             </div>
         </div>
     );
 }
 
-function ErrorState({ message, onBack, nav }) {
+function ErrorState({ message, onBack }) {
     return (
-        <div className="min-h-screen bg-background">
-            {nav}
-            <div className="flex flex-col items-center justify-center gap-5 py-24">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#f0faf5]">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                        <circle cx="12" cy="12" r="10" stroke="#0F6B36" strokeWidth="1.5" />
-                        <path
-                            d="M12 8v4M12 16h.01"
-                            stroke="#0F6B36"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                        />
-                    </svg>
-                </div>
-                <p className="text-sm text-slate-600">{message || "Product not found"}</p>
-                <button
-                    onClick={onBack}
-                    className="rounded-xl bg-[#0F6B36] px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#0d5f30]"
-                >
-                    Back to Home
-                </button>
+        <div className="flex flex-col items-center justify-center gap-5 py-24">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#f0faf5]">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="#0F6B36" strokeWidth="1.5" />
+                    <path
+                        d="M12 8v4M12 16h.01"
+                        stroke="#0F6B36"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                    />
+                </svg>
             </div>
+            <p className="text-sm text-slate-600">{message || "Product not found"}</p>
+            <button
+                type="button"
+                onClick={onBack}
+                className="rounded-xl bg-[#0F6B36] px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#0d5f30]"
+            >
+                Back to Home
+            </button>
         </div>
     );
 }
@@ -88,10 +79,18 @@ function ProductDetailsPage() {
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [searchValue, setSearchValue] = useState("");
 
-    const handleBottomNavSelect = useCallback((itemId) => {
-        setActiveBottomNavItem(itemId);
-    }, []);
+    const handleBottomNavSelect = useCallback(
+        (itemId) => {
+            setActiveBottomNavItem(itemId);
+            if (itemId === "home") navigate("/");
+            if (itemId === "inquiry") navigate("/inquiries");
+            if (itemId === "profile") navigate("/vendor-waitlist");
+            if (itemId === "categories") navigate("/");
+        },
+        [navigate]
+    );
 
     useEffect(() => {
         const fetchProductDetails = async () => {
@@ -99,12 +98,19 @@ function ProductDetailsPage() {
                 const docRef = doc(db, "products", productId);
                 const docSnap = await getDoc(docRef);
                 if (docSnap.exists()) {
-                    setProduct({ id: docSnap.id, ...docSnap.data() });
+                    setProduct(
+                        mapProductRecord(
+                            { id: docSnap.id, ...docSnap.data() },
+                            docSnap.id
+                        )
+                    );
                     setError("");
                 } else {
+                    setProduct(null);
                     setError("Product not found");
                 }
             } catch (err) {
+                setProduct(null);
                 setError("Failed to load product details");
                 console.error(err);
             } finally {
@@ -118,9 +124,14 @@ function ProductDetailsPage() {
         <Header
             brand={siteContent.brand}
             searchLabel={siteContent.header.searchLabel}
-            actions={siteContent.header.actions}
-            searchValue=""
-            onSearchChange={() => { }}
+            searchValue={searchValue}
+            onSearchChange={(event) => {
+                const next = event.target.value;
+                setSearchValue(next);
+                if (next.trim()) {
+                    navigate(`/?q=${encodeURIComponent(next.trim())}`);
+                }
+            }}
         />
     );
     const footer = (
@@ -217,7 +228,7 @@ function ProductDetailsPage() {
                                 </span>
                             </div>
                         )}
-                        {/* Verified overlay badge */}
+                        {isProductVerified(product) ? (
                         <span className="absolute left-3.5 top-3.5 inline-flex items-center gap-1.5 rounded-full bg-[#0F6B36] px-3 py-1.5 shadow-sm">
                             <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
                                 <path
@@ -232,6 +243,7 @@ function ProductDetailsPage() {
                                 Verified Listing
                             </span>
                         </span>
+                        ) : null}
                     </div>
 
                     {/* Detail column */}
