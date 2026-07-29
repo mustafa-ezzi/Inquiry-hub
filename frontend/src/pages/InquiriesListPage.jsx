@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { siteContent } from "../data/inquiryData";
+import { useAuth } from "../context/AuthContext";
 import { fetchMessages, listUserInquiries } from "../services/inquiryChatApi";
 import BottomNav from "../components/BottomNav";
 import Header from "../components/Header";
@@ -35,6 +36,7 @@ function formatUpdated(ts) {
 
 function InquiriesListPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState(null);
@@ -45,7 +47,7 @@ function InquiriesListPage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const list = await listUserInquiries();
+      const list = await listUserInquiries({ buyerUid: user?.uid });
       setItems(list);
     } catch (e) {
       console.error(e);
@@ -53,7 +55,7 @@ function InquiriesListPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     void load();

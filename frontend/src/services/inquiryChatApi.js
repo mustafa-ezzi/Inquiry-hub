@@ -1,17 +1,63 @@
+/**
+ * Inquiry chat facade (Phase 3).
+ *
+ * Backend selection:
+ * 1. `VITE_INQUIRY_API_BASE` → external REST
+ * 2. Else Firestore (production default)
+ * 3. localStorage only when `import.meta.env.DEV` && `VITE_INQUIRY_DEMO_LOCAL=true`
+ */
+
+import {
+  createFirestoreInquiry,
+  fetchFirestoreMessages,
+  findBuyerProductInquiry,
+  listBuyerInquiries,
+  sendFirestoreMessage,
+  subscribeFirestoreMessages,
+} from "./inquiryFirestoreService";
+
 const API_BASE = import.meta.env.VITE_INQUIRY_API_BASE?.replace(/\/$/, "");
+
+/** @type {null | "rest" | "firestore" | "local"} */
+let backendOverride = null;
+
+/** Test-only override. Pass `null` to clear. */
+export function __setInquiryBackendForTests(value) {
+  backendOverride = value;
+}
 
 function storageKey(productId) {
   return `inquiry_chat_${productId}`;
 }
 
+/**
+ * @returns {"rest" | "firestore" | "local"}
+ */
+export function getInquiryBackend() {
+  if (backendOverride) return backendOverride;
+  if (API_BASE) return "rest";
+  if (
+    import.meta.env.DEV &&
+    String(import.meta.env.VITE_INQUIRY_DEMO_LOCAL || "") === "true"
+  ) {
+    return "local";
+  }
+  return "firestore";
+}
+
 export function isInquiryApiConfigured() {
-  return Boolean(API_BASE);
+  return getInquiryBackend() !== "local";
+}
+
+export function usesFirestoreInquiries() {
+  return getInquiryBackend() === "firestore";
 }
 
 /**
- * @returns {null | { inquiryId: string, buyerName: string, phone: string, messages: Array<{id: string, role: string, senderName: string, senderRole?: string, body: string, createdAt: number}> }}
+ * @returns {null | { inquiryId: string, buyerName: string, phone: string, messages: Array }}
  */
 export function loadStoredInquiry(productId) {
+  if (getInquiryBackend() !== "local") return null;
   try {
     const raw = localStorage.getItem(storageKey(productId));
     if (!raw) return null;
@@ -28,8 +74,8 @@ function saveStored(productId, data) {
 }
 
 /**
- * POST create inquiry. Server: POST /inquiries body { productId, buyerName, phone, message, productName?, vendorName?, vendorLocation? }
- * Expects JSON { inquiryId } or { id }.
+ * Create inquiry (REST | Firestore | local demo).
+ * Firestore requires `buyerUid` (signed-in user).
  */
 export async function createInquiry({
   productId,
@@ -39,8 +85,12 @@ export async function createInquiry({
   productName = "",
   vendorName = "",
   vendorLocation = "",
+  shopId = "",
+  buyerUid = "",
 }) {
-  if (API_BASE) {
+  const backend = getInquiryBackend();
+
+  if (backend === "rest") {
     const res = await fetch(`${API_BASE}/inquiries`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -52,6 +102,8 @@ export async function createInquiry({
         productName,
         vendorName,
         vendorLocation,
+        shopId,
+        buyerUid,
       }),
     });
     if (!res.ok) {
@@ -64,6 +116,21 @@ export async function createInquiry({
     return { inquiryId };
   }
 
+  if (backend === "firestore") {
+    return createFirestoreInquiry({
+      productId,
+      shopId,
+      buyerUid,
+      buyerName,
+      phone,
+      message,
+      productName,
+      vendorName,
+      vendorLocation,
+    });
+  }
+
+  // —— local demo ——
   const inquiryId = `local_${Date.now()}`;
   const now = Date.now();
   const data = {
@@ -88,11 +155,10 @@ export async function createInquiry({
   return { inquiryId };
 }
 
-/**
- * GET messages. Server: GET /inquiries/:inquiryId/messages → { messages } or array
- */
 export async function fetchMessages({ inquiryId, productId }) {
-  if (API_BASE) {
+  const backend = getInquiryBackend();
+
+  if (backend === "rest") {
     const res = await fetch(
       `${API_BASE}/inquiries/${encodeURIComponent(inquiryId)}/messages`
     );
@@ -102,24 +168,42 @@ export async function fetchMessages({ inquiryId, productId }) {
     return { messages: body.messages ?? body.data ?? [] };
   }
 
+  if (backend === "firestore") {
+    return fetchFirestoreMessages(inquiryId);
+  }
+
   const stored = loadStoredInquiry(productId);
   if (!stored || stored.inquiryId !== inquiryId) return { messages: [] };
   return { messages: [...stored.messages] };
 }
 
 /**
- * POST new buyer message. Server: POST /inquiries/:id/messages { body }
+ * Subscribe to messages when using Firestore; otherwise poll via callback once.
+ * @returns {() => void} unsubscribe
  */
+export function subscribeMessages({ inquiryId, productId }, onData, onError) {
+  if (getInquiryBackend() === "firestore") {
+    return subscribeFirestoreMessages(inquiryId, onData, onError);
+  }
+  void fetchMessages({ inquiryId, productId })
+    .then((r) => onData(r.messages || []))
+    .catch((e) => onError?.(e));
+  return () => {};
+}
+
 export async function sendBuyerMessage({
   inquiryId,
   productId,
   buyerName,
   body,
+  buyerUid = "",
 }) {
   const text = body.trim();
   if (!text) return;
 
-  if (API_BASE) {
+  const backend = getInquiryBackend();
+
+  if (backend === "rest") {
     const res = await fetch(
       `${API_BASE}/inquiries/${encodeURIComponent(inquiryId)}/messages`,
       {
@@ -132,6 +216,18 @@ export async function sendBuyerMessage({
       const t = await res.text();
       throw new Error(t || `HTTP ${res.status}`);
     }
+    return;
+  }
+
+  if (backend === "firestore") {
+    await sendFirestoreMessage({
+      inquiryId,
+      body: text,
+      role: "buyer",
+      senderName: buyerName,
+      senderUid: buyerUid,
+      senderRole: "You",
+    });
     return;
   }
 
@@ -149,6 +245,41 @@ export async function sendBuyerMessage({
     createdAt: now,
   });
   saveStored(productId, stored);
+}
+
+/**
+ * Vendor reply (Firestore / REST). Used by Phase 4; available for tests now.
+ */
+export async function sendVendorMessage({
+  inquiryId,
+  body,
+  vendorName,
+  vendorUid,
+}) {
+  if (getInquiryBackend() === "firestore") {
+    await sendFirestoreMessage({
+      inquiryId,
+      body,
+      role: "vendor",
+      senderName: vendorName,
+      senderUid: vendorUid,
+      senderRole: "Vendor",
+    });
+    return;
+  }
+  if (getInquiryBackend() === "rest") {
+    const res = await fetch(
+      `${API_BASE}/inquiries/${encodeURIComponent(inquiryId)}/messages`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ body, role: "vendor" }),
+      }
+    );
+    if (!res.ok) throw new Error(await res.text());
+    return;
+  }
+  throw new Error("Vendor messages require Firestore or REST backend.");
 }
 
 function normalizeListRow(raw) {
@@ -171,26 +302,42 @@ function normalizeListRow(raw) {
     vendorName: raw.vendorName || raw.vendor_name || "",
     vendorLocation: raw.vendorLocation || raw.vendor_location || "",
     preview: raw.preview || last?.body || "",
+    status: raw.status || "",
     updatedAt,
     messages,
   };
 }
 
 /**
- * Lists inquiries for the current browser (localStorage + session hints) or GET /inquiries when API is set.
+ * List inquiries for the current user.
+ * @param {{ buyerUid?: string }} [opts]
  */
-export async function listUserInquiries() {
-  if (API_BASE) {
+export async function listUserInquiries(opts = {}) {
+  const backend = getInquiryBackend();
+
+  if (backend === "rest") {
     try {
       const res = await fetch(`${API_BASE}/inquiries`);
       if (res.ok) {
         const body = await res.json();
-        const arr = Array.isArray(body) ? body : body.inquiries ?? body.data ?? [];
-        if (arr.length) return arr.map(normalizeListRow).filter((r) => r.productId && r.inquiryId);
+        const arr = Array.isArray(body)
+          ? body
+          : body.inquiries ?? body.data ?? [];
+        if (arr.length)
+          return arr
+            .map(normalizeListRow)
+            .filter((r) => r.productId && r.inquiryId);
       }
     } catch {
       /* fall through */
     }
+  }
+
+  if (backend === "firestore") {
+    const uid = opts.buyerUid;
+    if (!uid) return [];
+    const rows = await listBuyerInquiries(uid);
+    return rows.map((r) => normalizeListRow(r));
   }
 
   const byProduct = new Map();
@@ -240,3 +387,5 @@ export async function listUserInquiries() {
 
   return [...byProduct.values()].sort((a, b) => b.updatedAt - a.updatedAt);
 }
+
+export { findBuyerProductInquiry };

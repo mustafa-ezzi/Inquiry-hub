@@ -13,6 +13,11 @@ if (!import.meta.env.VITE_FIREBASE_API_KEY) {
   });
 }
 
+// Keep Phase 0 localStorage inquiry tests on the demo adapter.
+Object.assign(import.meta.env, {
+  VITE_INQUIRY_DEMO_LOCAL: "true",
+});
+
 vi.mock("firebase/auth", async (importOriginal) => {
   const actual = await importOriginal();
   return {

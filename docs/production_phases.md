@@ -182,10 +182,10 @@ Inquiry threads are **server-persisted**, multi-device, and visible to the corre
 
 ### Deliverables
 
-- [ ] Inquiry API or Firestore thread schema live on staging
-- [ ] Frontend production path uses remote backend only
-- [ ] Buyer “My inquiries” shows server data across devices
-- [ ] OpenAPI or short API.md for the inquiry contract
+- [x] Inquiry API or Firestore thread schema live on staging
+- [x] Frontend production path uses remote backend only
+- [x] Buyer “My inquiries” shows server data across devices
+- [x] OpenAPI or short API.md for the inquiry contract
 
 ### Test gate (100% green)
 
