@@ -26,9 +26,19 @@ Open the URL Vite prints (usually `http://localhost:5173`).
 
 ## Architecture sketch
 
-- **Routes:** `/`, `/product/:id`, `/shop/:id`, `/inquiry/:id`, `/inquiries`, `/vendor-waitlist`, legal pages
-- **Services:** `productService`, `shopsService`, `categoriesService`, `inquiryChatApi`
-- **Mappers:** `lib/mapProduct.js`, `shopsService.mapShopForCard`
+- **Routes:** `/`, `/product/:id`, `/shop/:id`, `/inquiry/:id`, `/inquiries` (auth), `/profile` (auth), `/vendor` (vendor), `/login`, `/register`, legal pages
+- **Auth:** Firebase email/password + `users/{uid}` roles (`docs/auth.md`)
+- **Services:** `authService`, `productService`, `shopsService`, `categoriesService`, `inquiryChatApi`
+- **Mappers / policy:** `lib/mapProduct.js`, `lib/accessControl.js`, `shopsService.mapShopForCard`
+
+## Auth (Phase 2)
+
+Email/password via Firebase Auth. See [`docs/auth.md`](../docs/auth.md).
+
+```bash
+# After enabling Email/Password in Firebase console:
+firebase deploy --only firestore:rules,storage
+```
 
 ## PWA / offline (Phase 1)
 

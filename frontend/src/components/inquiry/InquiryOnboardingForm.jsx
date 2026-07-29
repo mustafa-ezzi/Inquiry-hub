@@ -1,9 +1,20 @@
-import { memo, useState } from "react";
+import { memo, useEffect, useState } from "react";
 
-function InquiryOnboardingForm({ onSubmit, submitting, error }) {
-  const [buyerName, setBuyerName] = useState("");
-  const [phone, setPhone] = useState("");
+function InquiryOnboardingForm({
+  onSubmit,
+  submitting,
+  error,
+  defaultName = "",
+  defaultPhone = "",
+}) {
+  const [buyerName, setBuyerName] = useState(defaultName);
+  const [phone, setPhone] = useState(defaultPhone);
   const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    if (defaultName) setBuyerName(defaultName);
+    if (defaultPhone) setPhone(defaultPhone);
+  }, [defaultName, defaultPhone]);
 
   const handleSubmit = (e) => {
     e.preventDefault();

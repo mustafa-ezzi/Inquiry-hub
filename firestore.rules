@@ -1,0 +1,138 @@
+rules_version = '2';
+
+// InquireHub Phase 2 security rules.
+// Deploy: firebase deploy --only firestore:rules
+// Mirror policy helpers: frontend/src/lib/accessControl.js
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function uid() {
+      return request.auth.uid;
+    }
+
+    function userDoc() {
+      return get(/databases/$(database)/documents/users/$(uid())).data;
+    }
+
+    function userRole() {
+      return signedIn() && exists(/databases/$(database)/documents/users/$(uid()))
+        ? userDoc().role
+        : null;
+    }
+
+    function isAdmin() {
+      return userRole() == 'admin';
+    }
+
+    function isVendor() {
+      return userRole() == 'vendor' || isAdmin();
+    }
+
+    function shopIds() {
+      return signedIn() && exists(/databases/$(database)/documents/users/$(uid()))
+        ? userDoc().get('shopIds', [])
+        : [];
+    }
+
+    function isShopMember(shopId) {
+      return shopId in shopIds()
+        || (exists(/databases/$(database)/documents/shops/$(shopId))
+          && get(/databases/$(database)/documents/shops/$(shopId)).data.ownerUid == uid());
+    }
+
+    // —— users ——
+    match /users/{userId} {
+      allow read: if signedIn() && (uid() == userId || isAdmin());
+      allow create: if signedIn()
+        && uid() == userId
+        && request.resource.data.uid == userId
+        && request.resource.data.role in ['buyer', 'vendor']
+        && !(request.resource.data.role == 'admin');
+      allow update: if signedIn() && (
+        isAdmin()
+        || (
+          uid() == userId
+          && request.resource.data.role != 'admin'
+          && (
+            // allow buyer → vendor when attaching shops
+            request.resource.data.role in ['buyer', 'vendor']
+          )
+        )
+      );
+      allow delete: if false;
+    }
+
+    // —— catalog (public read) ——
+    match /categories/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /products/{id} {
+      allow read: if true;
+      allow create, update: if signedIn() && (
+        isAdmin()
+        || (
+          isVendor()
+          && request.resource.data.keys().hasAny(['shopId', 'shop_id'])
+          && isShopMember(
+            request.resource.data.get('shopId', request.resource.data.get('shop_id', ''))
+          )
+        )
+      );
+      allow delete: if isAdmin();
+    }
+
+    match /shops/{shopId} {
+      allow read: if true;
+      allow create: if signedIn()
+        && request.resource.data.ownerUid == uid()
+        && request.resource.data.verified == false;
+      allow update: if signedIn() && (
+        isAdmin()
+        || resource.data.ownerUid == uid()
+        || isShopMember(shopId)
+      );
+      allow delete: if isAdmin();
+    }
+
+    // —— private inquiry threads (Phase 3 persistence) ——
+    match /inquiries/{inquiryId} {
+      allow read: if signedIn() && (
+        isAdmin()
+        || resource.data.buyerUid == uid()
+        || isShopMember(resource.data.shopId)
+      );
+      allow create: if signedIn()
+        && request.resource.data.buyerUid == uid();
+      allow update: if signedIn() && (
+        isAdmin()
+        || resource.data.buyerUid == uid()
+        || isShopMember(resource.data.shopId)
+      );
+      allow delete: if isAdmin();
+
+      match /messages/{messageId} {
+        allow read: if signedIn() && (
+          isAdmin()
+          || get(/databases/$(database)/documents/inquiries/$(inquiryId)).data.buyerUid == uid()
+          || isShopMember(
+            get(/databases/$(database)/documents/inquiries/$(inquiryId)).data.shopId
+          )
+        );
+        allow create: if signedIn() && (
+          isAdmin()
+          || get(/databases/$(database)/documents/inquiries/$(inquiryId)).data.buyerUid == uid()
+          || isShopMember(
+            get(/databases/$(database)/documents/inquiries/$(inquiryId)).data.shopId
+          )
+        );
+        allow update, delete: if isAdmin();
+      }
+    }
+  }
+}

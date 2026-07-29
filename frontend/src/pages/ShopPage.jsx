@@ -57,7 +57,7 @@ function ShopPage() {
       setActiveBottomNavItem(itemId);
       if (itemId === "home") navigate("/");
       if (itemId === "inquiry") navigate("/inquiries");
-      if (itemId === "profile") navigate("/vendor-waitlist");
+      if (itemId === "profile") navigate("/profile");
     },
     [navigate]
   );

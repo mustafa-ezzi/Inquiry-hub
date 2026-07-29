@@ -109,7 +109,7 @@ Buyer-facing discovery is **complete, consistent, and production-usable** withou
 - [x] Shop detail page + routing
 - [x] Stub controls resolved (wired or removed)
 - [x] Consistent product/shop mappers
-- [x] PWA smoke checklist signed off on staging
+- [x] PWA offline behavior documented (`frontend/README.md`); staging install checklist still manual
 
 ### Test gate (100% green)
 
@@ -143,10 +143,10 @@ Every privileged action has a **real user identity** and **Firestore (and API) r
 
 ### Deliverables
 
-- [ ] Auth UI (login / register / logout)
-- [ ] User profile document + role model
-- [ ] `firestore.rules` + emulator tests
-- [ ] Protected routes for buyer inquiry history
+- [x] Auth UI (login / register / logout)
+- [x] User profile document + role model
+- [x] `firestore.rules` + emulator tests
+- [x] Protected routes for buyer inquiry history
 
 ### Test gate (100% green)
 

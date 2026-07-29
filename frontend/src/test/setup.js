@@ -1,4 +1,5 @@
 import "@testing-library/jest-dom/vitest";
+import { vi } from "vitest";
 
 // Firebase reads env at import time — provide test defaults before modules load.
 if (!import.meta.env.VITE_FIREBASE_API_KEY) {
@@ -11,3 +12,17 @@ if (!import.meta.env.VITE_FIREBASE_API_KEY) {
     VITE_FIREBASE_APP_ID: "1:123456789:web:abcdef",
   });
 }
+
+vi.mock("firebase/auth", async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    getAuth: () => ({ currentUser: null }),
+    setPersistence: vi.fn(() => Promise.resolve()),
+    browserLocalPersistence: {},
+    onAuthStateChanged: (_auth, cb) => {
+      cb(null);
+      return () => {};
+    },
+  };
+});

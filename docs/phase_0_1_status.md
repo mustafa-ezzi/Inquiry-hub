@@ -32,4 +32,11 @@ npm run test:coverage
 npm run build
 ```
 
-All of the above must pass at **100%** before Phase 2.
+Verified locally (2026-07-29):
+
+- Tests: **22+** passing (100%)
+- Lint: **0 errors** (warnings allowed)
+- Coverage (`src/services` + `src/lib` lines): see latest `npm run test:coverage`
+- Build: succeeds
+
+All of the above must stay **100% green** before Phase 2.

@@ -3,7 +3,25 @@ import { MemoryRouter } from "react-router-dom";
 import { render, screen } from "@testing-library/react";
 import { AppRoutes } from "./App";
 
-vi.mock("./lib/firebase", () => ({ db: {} }));
+vi.mock("./lib/firebase", () => ({ db: {}, auth: {} }));
+
+vi.mock("./context/AuthContext", () => ({
+  AuthProvider: ({ children }) => children,
+  useAuth: () => ({
+    user: null,
+    profile: null,
+    loading: false,
+    isAuthenticated: false,
+    role: null,
+    shopIds: [],
+    login: vi.fn(),
+    register: vi.fn(),
+    logout: vi.fn(),
+    refreshProfile: vi.fn(),
+    saveContact: vi.fn(),
+    linkShop: vi.fn(),
+  }),
+}));
 
 vi.mock("./components/PwaUpdateScreen", () => ({
   default: () => null,
@@ -30,6 +48,18 @@ vi.mock("./pages/VendorWaitlistPage", () => ({
 vi.mock("./pages/LegalPage", () => ({
   default: () => <div>Legal route</div>,
 }));
+vi.mock("./pages/LoginPage", () => ({
+  default: () => <div>Login route</div>,
+}));
+vi.mock("./pages/RegisterPage", () => ({
+  default: () => <div>Register route</div>,
+}));
+vi.mock("./pages/ProfilePage", () => ({
+  default: () => <div>Profile route</div>,
+}));
+vi.mock("./pages/VendorPortalPlaceholderPage", () => ({
+  default: () => <div>Vendor portal route</div>,
+}));
 
 function renderAt(path) {
   return render(
@@ -44,13 +74,19 @@ describe("App routes smoke", () => {
     ["/", "Home route"],
     ["/product/abc", "Product route"],
     ["/inquiry/abc", "Inquiry route"],
-    ["/inquiries", "Inquiries list route"],
     ["/shop/shop-1", "Shop route"],
     ["/vendor-waitlist", "Vendor waitlist route"],
     ["/privacy", "Legal route"],
     ["/about", "Legal route"],
+    ["/login", "Login route"],
+    ["/register", "Register route"],
   ])("renders %s", (path, label) => {
     renderAt(path);
     expect(screen.getByText(label)).toBeInTheDocument();
+  });
+
+  it("sends unauthenticated users from /inquiries to login", () => {
+    renderAt("/inquiries");
+    expect(screen.getByText("Login route")).toBeInTheDocument();
   });
 });

@@ -4,12 +4,11 @@ import BrandLogo from "./BrandLogo";
 import Container from "./Container";
 import InstallPwaButton from "./InstallPwaButton";
 import SearchBar from "./SearchBar";
+import { useAuth } from "../context/AuthContext";
 
-/**
- * Account / Cart header actions are deferred until Auth (Phase 2).
- * Pass `actions` only when they have real handlers.
- */
 function Header({ brand, searchLabel, searchValue, onSearchChange }) {
+  const { isAuthenticated, profile, loading } = useAuth();
+
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200/60 bg-white/80 backdrop-blur-md">
       <Container>
@@ -53,6 +52,22 @@ function Header({ brand, searchLabel, searchValue, onSearchChange }) {
               </svg>
               <span className="hidden sm:inline">Messages</span>
             </Link>
+            {!loading && isAuthenticated ? (
+              <Link
+                to="/profile"
+                className="inline-flex h-10 max-w-[7.5rem] items-center truncate rounded-xl border border-slate-200 bg-white px-2.5 text-xs font-bold text-slate-700 hover:border-[#0F6B36]/30 hover:bg-[#f0faf5]"
+                title={profile?.displayName || "Profile"}
+              >
+                {profile?.displayName || "Profile"}
+              </Link>
+            ) : !loading ? (
+              <Link
+                to="/login"
+                className="inline-flex h-10 items-center rounded-xl bg-[#0F6B36] px-3 text-xs font-bold text-white hover:bg-[#0d5f30]"
+              >
+                Sign in
+              </Link>
+            ) : null}
           </div>
         </div>
       </Container>

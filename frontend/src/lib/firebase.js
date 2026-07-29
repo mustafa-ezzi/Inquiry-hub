@@ -1,4 +1,5 @@
 import { initializeApp } from "firebase/app";
+import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const {
@@ -47,3 +48,9 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 export const db = getFirestore(app);
+export const auth = getAuth(app);
+
+/** Persist sessions across browser restarts (Phase 2). */
+void setPersistence(auth, browserLocalPersistence).catch((err) => {
+  console.warn("Auth persistence unavailable:", err?.message || err);
+});

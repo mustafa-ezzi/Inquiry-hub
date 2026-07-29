@@ -279,7 +279,7 @@ function HomePage() {
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
       if (itemId === "inquiry") navigate("/inquiries");
-      if (itemId === "profile") navigate("/vendor-waitlist");
+      if (itemId === "profile") navigate("/profile");
       if (itemId === "categories") {
         document
           .getElementById("top")

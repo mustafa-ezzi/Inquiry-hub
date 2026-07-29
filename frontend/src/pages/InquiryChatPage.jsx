@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../lib/firebase";
+import { useAuth } from "../context/AuthContext";
 import { buildInquiryProductView } from "../lib/inquiryProductView";
 import { siteContent } from "../data/inquiryData";
 import {
@@ -54,6 +55,7 @@ function normalizeMessage(m) {
 function InquiryChatPage() {
   const { productId } = useParams();
   const navigate = useNavigate();
+  const { isAuthenticated, profile } = useAuth();
   const [product, setProduct] = useState(null);
   const [loadError, setLoadError] = useState("");
   const [productLoading, setProductLoading] = useState(true);
@@ -197,6 +199,7 @@ function InquiryChatPage() {
       if (itemId === "home") navigate("/");
       else if (itemId === "categories") navigate("/");
       else if (itemId === "inquiry") navigate("/inquiries");
+      else if (itemId === "profile") navigate("/profile");
     },
     [navigate]
   );
@@ -280,11 +283,23 @@ function InquiryChatPage() {
           />
 
           {!hasInquiry ? (
-            <InquiryOnboardingForm
-              onSubmit={handleOnboarding}
-              submitting={onboardingSubmitting}
-              error={onboardingError}
-            />
+            <div>
+              {!isAuthenticated ? (
+                <p className="mx-auto max-w-lg px-4 pt-4 text-center text-sm text-slate-600">
+                  <Link to="/login" className="font-semibold text-[#0F6B36] hover:underline">
+                    Sign in
+                  </Link>{" "}
+                  to use your saved contact details, or continue as a guest.
+                </p>
+              ) : null}
+              <InquiryOnboardingForm
+                onSubmit={handleOnboarding}
+                submitting={onboardingSubmitting}
+                error={onboardingError}
+                defaultName={profile?.displayName || ""}
+                defaultPhone={profile?.phone || ""}
+              />
+            </div>
           ) : (
             <>
               <InquiryMessageThread messages={messages} />

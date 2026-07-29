@@ -54,11 +54,17 @@ export async function fetchShopById(shopId) {
   return mapShopForCard(snap.id, snap.data());
 }
 
-export async function createShop({ shopName, location }) {
-  await addDoc(collection(db, SHOPS_COLLECTION), {
+export async function createShop({ shopName, location, ownerUid }) {
+  if (!ownerUid) {
+    throw new Error("Sign in required to create a shop.");
+  }
+  const ref = await addDoc(collection(db, SHOPS_COLLECTION), {
     shopName: shopName.trim(),
     location: location.trim(),
     verified: false,
+    ownerUid,
+    memberUids: [ownerUid],
     created_at: serverTimestamp(),
   });
+  return { id: ref.id };
 }
