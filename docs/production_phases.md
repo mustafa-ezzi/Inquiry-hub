@@ -221,10 +221,10 @@ Vendors can **receive and answer** inquiries and manage a minimal catalog — th
 
 ### Deliverables
 
-- [ ] Vendor layout + inbox + reply
-- [ ] Vendor product CRUD (MVP fields)
-- [ ] New-inquiry notification
-- [ ] Role-gated navigation (buyers never see vendor admin by accident)
+- [x] Vendor layout + inbox + reply
+- [x] Vendor product CRUD (MVP fields)
+- [x] New-inquiry notification
+- [x] Role-gated navigation (buyers never see vendor admin by accident)
 
 ### Test gate (100% green)
 

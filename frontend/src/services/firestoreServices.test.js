@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const getDocs = vi.fn();
 const getDoc = vi.fn();
+const updateDoc = vi.fn();
 const collection = vi.fn(() => "col");
 const query = vi.fn((...args) => args);
 const orderBy = vi.fn();
@@ -9,11 +10,13 @@ const limit = vi.fn();
 const startAfter = vi.fn();
 const where = vi.fn();
 const doc = vi.fn(() => "docRef");
+const serverTimestamp = vi.fn(() => "ts");
 
 vi.mock("firebase/firestore", () => ({
   collection: (...a) => collection(...a),
   getDocs: (...a) => getDocs(...a),
   getDoc: (...a) => getDoc(...a),
+  updateDoc: (...a) => updateDoc(...a),
   query: (...a) => query(...a),
   orderBy: (...a) => orderBy(...a),
   limit: (...a) => limit(...a),
@@ -21,7 +24,7 @@ vi.mock("firebase/firestore", () => ({
   where: (...a) => where(...a),
   doc: (...a) => doc(...a),
   addDoc: vi.fn(),
-  serverTimestamp: vi.fn(),
+  serverTimestamp: (...a) => serverTimestamp(...a),
 }));
 
 vi.mock("../lib/firebase", () => ({ db: {} }));
@@ -31,6 +34,7 @@ describe("productService + shopsService fetches", () => {
     vi.resetModules();
     getDocs.mockReset();
     getDoc.mockReset();
+    updateDoc.mockReset();
   });
 
   it("fetchProducts maps records", async () => {
@@ -62,6 +66,14 @@ describe("productService + shopsService fetches", () => {
 
     getDoc.mockResolvedValueOnce({ exists: () => false });
     expect(await fetchShopById("missing")).toBeNull();
+  });
+
+  it("updateShop patches name and location", async () => {
+    updateDoc.mockResolvedValue(undefined);
+    const { updateShop } = await import("../services/shopsService");
+    await updateShop("s1", { shopName: " New ", location: " Karachi " });
+    expect(updateDoc).toHaveBeenCalled();
+    await expect(updateShop("", { shopName: "X" })).rejects.toThrow(/Missing/);
   });
 
   it("fetchCategories maps and sorts", async () => {

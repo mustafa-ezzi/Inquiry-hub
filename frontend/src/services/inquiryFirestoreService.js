@@ -2,6 +2,7 @@ import {
   addDoc,
   collection,
   doc,
+  getDoc,
   getDocs,
   limit,
   onSnapshot,
@@ -17,6 +18,7 @@ import {
   isValidMessageBody,
   validateInquiryOnboarding,
 } from "../lib/inquiryValidation";
+import { notifyNewInquiry } from "./notifyInquiry";
 
 export const INQUIRIES_COLLECTION = "inquiries";
 
@@ -74,6 +76,16 @@ export function mapInquiryDoc(id, data = {}) {
     updatedAt,
     messages: [],
   };
+}
+
+/**
+ * @param {string} inquiryId
+ */
+export async function getInquiry(inquiryId) {
+  if (!inquiryId) return null;
+  const snap = await getDoc(doc(db, INQUIRIES_COLLECTION, inquiryId));
+  if (!snap.exists()) return null;
+  return mapInquiryDoc(snap.id, snap.data());
 }
 
 /**
@@ -157,6 +169,18 @@ export async function createFirestoreInquiry({
     createdAt: serverTimestamp(),
   });
 
+  try {
+    await notifyNewInquiry({
+      inquiryId: inquiryRef.id,
+      shopId: shopId ? String(shopId) : "",
+      productName: (productName || "").trim() || "Product",
+      buyerName: name,
+      preview: text.slice(0, 200),
+    });
+  } catch (err) {
+    console.warn("notifyNewInquiry failed", err);
+  }
+
   return { inquiryId: inquiryRef.id, existing: false };
 }
 
@@ -190,6 +214,35 @@ export async function listShopInquiries(shopId) {
   );
   const snap = await getDocs(q);
   return snap.docs.map((d) => mapInquiryDoc(d.id, d.data()));
+}
+
+/**
+ * Realtime shop inbox.
+ * @param {string} shopId
+ * @param {(rows: ReturnType<typeof mapInquiryDoc>[]) => void} onData
+ * @param {(err: Error) => void} [onError]
+ */
+export function subscribeShopInquiries(shopId, onData, onError) {
+  if (!shopId) {
+    onData([]);
+    return () => {};
+  }
+  const q = query(
+    collection(db, INQUIRIES_COLLECTION),
+    where("shopId", "==", shopId),
+    orderBy("updatedAt", "desc"),
+    limit(50)
+  );
+  return onSnapshot(
+    q,
+    (snap) => {
+      onData(snap.docs.map((d) => mapInquiryDoc(d.id, d.data())));
+    },
+    (err) => {
+      console.error(err);
+      onError?.(err);
+    }
+  );
 }
 
 /**

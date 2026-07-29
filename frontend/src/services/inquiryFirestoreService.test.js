@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const addDoc = vi.fn();
 const getDocs = vi.fn();
+const getDoc = vi.fn();
 const updateDoc = vi.fn();
 const collection = vi.fn(() => "col");
 const doc = vi.fn(() => "docRef");
@@ -11,10 +12,12 @@ const orderBy = vi.fn();
 const limit = vi.fn();
 const serverTimestamp = vi.fn(() => "ts");
 const onSnapshot = vi.fn();
+const notifyNewInquiryMock = vi.fn(async () => undefined);
 
 vi.mock("firebase/firestore", () => ({
   addDoc: (...a) => addDoc(...a),
   getDocs: (...a) => getDocs(...a),
+  getDoc: (...a) => getDoc(...a),
   updateDoc: (...a) => updateDoc(...a),
   collection: (...a) => collection(...a),
   doc: (...a) => doc(...a),
@@ -27,14 +30,19 @@ vi.mock("firebase/firestore", () => ({
 }));
 
 vi.mock("../lib/firebase", () => ({ db: {} }));
+vi.mock("./notifyInquiry", () => ({
+  notifyNewInquiry: (...a) => notifyNewInquiryMock(...a),
+}));
 
 describe("inquiryFirestoreService", () => {
   beforeEach(() => {
     vi.resetModules();
     addDoc.mockReset();
     getDocs.mockReset();
+    getDoc.mockReset();
     updateDoc.mockReset();
     onSnapshot.mockReset();
+    notifyNewInquiryMock.mockReset();
   });
 
   it("rejects create without buyerUid", async () => {
@@ -69,6 +77,26 @@ describe("inquiryFirestoreService", () => {
 
     expect(result.inquiryId).toBe("inq-1");
     expect(addDoc).toHaveBeenCalledTimes(2);
+    expect(notifyNewInquiryMock).toHaveBeenCalledWith(
+      expect.objectContaining({ inquiryId: "inq-1", shopId: "s1" })
+    );
+  });
+
+  it("getInquiry returns mapped doc", async () => {
+    getDoc.mockResolvedValue({
+      exists: () => true,
+      id: "inq-9",
+      data: () => ({
+        productId: "p9",
+        shopId: "s9",
+        buyerName: "Ali",
+        status: "awaiting_vendor",
+      }),
+    });
+    const { getInquiry } = await import("./inquiryFirestoreService");
+    const row = await getInquiry("inq-9");
+    expect(row.inquiryId).toBe("inq-9");
+    expect(row.productId).toBe("p9");
   });
 
   it("lists buyer inquiries", async () => {
@@ -141,5 +169,50 @@ describe("inquiryFirestoreService", () => {
     const { messages } = await fetchFirestoreMessages("inq-1");
     expect(messages[0].body).toBe("Hi");
     expect(messages[0].createdAt).toBe(50);
+  });
+
+  it("listShopInquiries and subscribeShopInquiries", async () => {
+    getDocs.mockResolvedValue({
+      docs: [
+        {
+          id: "inq-s",
+          data: () => ({
+            shopId: "shop-1",
+            productName: "Rod",
+            status: "awaiting_vendor",
+            updatedAt: 99,
+          }),
+        },
+      ],
+    });
+    const { listShopInquiries, subscribeShopInquiries } = await import(
+      "./inquiryFirestoreService"
+    );
+    const rows = await listShopInquiries("shop-1");
+    expect(rows[0].inquiryId).toBe("inq-s");
+
+    expect(await listShopInquiries("")).toEqual([]);
+
+    const onData = vi.fn();
+    onSnapshot.mockImplementation((_q, ok) => {
+      ok({
+        docs: [
+          {
+            id: "inq-live",
+            data: () => ({ shopId: "shop-1", productName: "Live" }),
+          },
+        ],
+      });
+      return () => {};
+    });
+    const unsub = subscribeShopInquiries("shop-1", onData);
+    expect(onData).toHaveBeenCalledWith([
+      expect.objectContaining({ inquiryId: "inq-live" }),
+    ]);
+    unsub();
+
+    const empty = vi.fn();
+    subscribeShopInquiries("", empty);
+    expect(empty).toHaveBeenCalledWith([]);
   });
 });

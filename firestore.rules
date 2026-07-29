@@ -84,7 +84,15 @@ service cloud.firestore {
           )
         )
       );
-      allow delete: if isAdmin();
+      allow delete: if signedIn() && (
+        isAdmin()
+        || (
+          isVendor()
+          && isShopMember(
+            resource.data.get('shopId', resource.data.get('shop_id', ''))
+          )
+        )
+      );
     }
 
     match /shops/{shopId} {

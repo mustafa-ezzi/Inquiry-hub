@@ -58,8 +58,11 @@ vi.mock("./pages/RegisterPage", () => ({
 vi.mock("./pages/ProfilePage", () => ({
   default: () => <div>Profile route</div>,
 }));
-vi.mock("./pages/VendorPortalPlaceholderPage", () => ({
+vi.mock("./components/vendor/VendorLayout", () => ({
   default: () => <div>Vendor portal route</div>,
+}));
+vi.mock("./pages/vendor/VendorDashboardPage", () => ({
+  default: () => <div>Vendor dashboard</div>,
 }));
 
 function renderAt(path) {

@@ -17,8 +17,11 @@ function formatTime(ts) {
   });
 }
 
-function InquiryMessageThread({ messages }) {
+/** @param {{ messages: Array, currentRole?: "buyer" | "vendor" }} props */
+function InquiryMessageThread({ messages, currentRole = "buyer" }) {
   const bottomRef = useRef(null);
+  const mine = currentRole === "vendor" ? "vendor" : "buyer";
+
 
   const grouped = useMemo(() => {
     const sorted = [...messages].sort((a, b) => a.createdAt - b.createdAt);
@@ -65,13 +68,13 @@ function InquiryMessageThread({ messages }) {
               key={item.id}
               className={[
                 "flex w-full",
-                item.role === "buyer" ? "justify-end" : "justify-start",
+                item.role === mine ? "justify-end" : "justify-start",
               ].join(" ")}
             >
               <div
                 className={[
                   "max-w-[min(100%,85%)] rounded-2xl px-3.5 py-2.5 shadow-sm",
-                  item.role === "buyer"
+                  item.role === mine
                     ? "rounded-br-md bg-[#0F6B36] text-white"
                     : "rounded-bl-md border border-slate-200 bg-white text-[#111827]",
                 ].join(" ")}
@@ -79,7 +82,7 @@ function InquiryMessageThread({ messages }) {
                 <p
                   className={[
                     "text-[10px] font-semibold uppercase tracking-wide",
-                    item.role === "buyer" ? "text-white/80" : "text-slate-500",
+                    item.role === mine ? "text-white/80" : "text-slate-500",
                   ].join(" ")}
                 >
                   {item.senderName}
@@ -88,7 +91,7 @@ function InquiryMessageThread({ messages }) {
                 <p
                   className={[
                     "mt-1 whitespace-pre-wrap text-sm leading-relaxed",
-                    item.role === "buyer" ? "text-white" : "text-[#111827]",
+                    item.role === mine ? "text-white" : "text-[#111827]",
                   ].join(" ")}
                 >
                   {item.body}
@@ -96,7 +99,7 @@ function InquiryMessageThread({ messages }) {
                 <p
                   className={[
                     "mt-1.5 text-[10px]",
-                    item.role === "buyer" ? "text-white/70" : "text-slate-400",
+                    item.role === mine ? "text-white/70" : "text-slate-400",
                   ].join(" ")}
                 >
                   {formatTime(item.createdAt)}

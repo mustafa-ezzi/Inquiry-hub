@@ -8,6 +8,7 @@ import {
   orderBy,
   query,
   serverTimestamp,
+  updateDoc,
 } from "firebase/firestore";
 import { db } from "../lib/firebase";
 
@@ -67,4 +68,20 @@ export async function createShop({ shopName, location, ownerUid }) {
     created_at: serverTimestamp(),
   });
   return { id: ref.id };
+}
+
+/**
+ * @param {string} shopId
+ * @param {{ shopName?: string, location?: string }} patch
+ */
+export async function updateShop(shopId, patch) {
+  if (!shopId) throw new Error("Missing shop id.");
+  const next = { updated_at: serverTimestamp() };
+  if (typeof patch.shopName === "string") {
+    next.shopName = patch.shopName.trim();
+  }
+  if (typeof patch.location === "string") {
+    next.location = patch.location.trim();
+  }
+  await updateDoc(doc(db, SHOPS_COLLECTION, shopId), next);
 }
