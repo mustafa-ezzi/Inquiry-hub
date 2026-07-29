@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import Footer from "../components/Footer";
+import GoogleSignInButton from "../components/GoogleSignInButton";
 import Header from "../components/Header";
 import { useAuth } from "../context/AuthContext";
 import { siteContent } from "../data/inquiryData";
 import { authErrorMessage } from "../services/authService";
 
 function RegisterPage() {
-  const { register, isAuthenticated, loading } = useAuth();
+  const { register, loginWithGoogle, isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
   const [displayName, setDisplayName] = useState("");
   const [phone, setPhone] = useState("");
@@ -19,6 +20,19 @@ function RegisterPage() {
   if (!loading && isAuthenticated) {
     return <Navigate to="/" replace />;
   }
+
+  const handleGoogle = async () => {
+    setError("");
+    setSubmitting(true);
+    try {
+      await loginWithGoogle();
+      navigate("/", { replace: true });
+    } catch (err) {
+      setError(authErrorMessage(err));
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -44,67 +58,81 @@ function RegisterPage() {
       <main className="mx-auto max-w-md px-4 py-10">
         <h1 className="text-2xl font-extrabold text-[#111827]">Create account</h1>
         <p className="mt-2 text-sm text-slate-600">
-          Register as a buyer. You can create a shop later to become a vendor.
+          Fastest path: Google (Mart-Hub). Or register with email if that provider
+          is enabled. Add your phone later in Profile for inquiries.
         </p>
-        <form
-          onSubmit={handleSubmit}
-          className="mt-6 space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
-        >
-          <label className="block text-sm font-semibold text-slate-700">
-            Full name
-            <input
-              required
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              autoComplete="name"
-              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
-            />
-          </label>
-          <label className="block text-sm font-semibold text-slate-700">
-            Phone
-            <input
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              autoComplete="tel"
-              placeholder="03XXXXXXXXX"
-              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
-            />
-          </label>
-          <label className="block text-sm font-semibold text-slate-700">
-            Email
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              autoComplete="email"
-              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
-            />
-          </label>
-          <label className="block text-sm font-semibold text-slate-700">
-            Password
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="new-password"
-              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
-            />
-          </label>
-          {error ? (
-            <p className="text-sm text-rose-600" role="alert">
-              {error}
-            </p>
-          ) : null}
-          <button
-            type="submit"
+
+        <div className="mt-6 space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <GoogleSignInButton
+            onClick={handleGoogle}
             disabled={submitting}
-            className="min-h-[44px] w-full rounded-xl bg-[#0F6B36] text-sm font-semibold text-white disabled:opacity-60"
-          >
-            {submitting ? "Creating…" : "Create account"}
-          </button>
-        </form>
+            label={submitting ? "Opening Google…" : "Continue with Google"}
+          />
+
+          <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
+            <span className="h-px flex-1 bg-slate-200" />
+            or email
+            <span className="h-px flex-1 bg-slate-200" />
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <label className="block text-sm font-semibold text-slate-700">
+              Full name
+              <input
+                required
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                autoComplete="name"
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
+              />
+            </label>
+            <label className="block text-sm font-semibold text-slate-700">
+              Phone
+              <input
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                autoComplete="tel"
+                placeholder="03XXXXXXXXX"
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
+              />
+            </label>
+            <label className="block text-sm font-semibold text-slate-700">
+              Email
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
+              />
+            </label>
+            <label className="block text-sm font-semibold text-slate-700">
+              Password
+              <input
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
+              />
+            </label>
+            {error ? (
+              <p className="text-sm text-rose-600" role="alert">
+                {error}
+              </p>
+            ) : null}
+            <button
+              type="submit"
+              disabled={submitting}
+              className="min-h-[44px] w-full rounded-xl bg-[#0F6B36] text-sm font-semibold text-white disabled:opacity-60"
+            >
+              {submitting ? "Creating…" : "Create with email"}
+            </button>
+          </form>
+        </div>
+
         <p className="mt-4 text-center text-sm text-slate-600">
           Already registered?{" "}
           <Link to="/login" className="font-semibold text-[#0F6B36] hover:underline">

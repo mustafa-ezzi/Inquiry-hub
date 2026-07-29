@@ -12,6 +12,7 @@ import {
   attachShopMembership,
   ensureUserProfile,
   loginWithEmail,
+  loginWithGoogle as authLoginWithGoogle,
   logout as authLogout,
   registerWithEmail,
   updateUserContact,
@@ -55,6 +56,13 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(async (email, password) => {
     const result = await loginWithEmail({ email, password });
+    setUser(result.user);
+    setProfile(result.profile);
+    return result;
+  }, []);
+
+  const loginWithGoogle = useCallback(async () => {
+    const result = await authLoginWithGoogle();
     setUser(result.user);
     setProfile(result.profile);
     return result;
@@ -117,6 +125,7 @@ export function AuthProvider({ children }) {
       role: profile?.role || null,
       shopIds: profile?.shopIds || [],
       login,
+      loginWithGoogle,
       register,
       logout,
       refreshProfile,
@@ -128,6 +137,7 @@ export function AuthProvider({ children }) {
       profile,
       loading,
       login,
+      loginWithGoogle,
       register,
       logout,
       refreshProfile,

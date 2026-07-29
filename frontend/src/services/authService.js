@@ -1,6 +1,8 @@
 import {
+  GoogleAuthProvider,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  signInWithPopup,
   signOut,
   updateProfile,
 } from "firebase/auth";
@@ -9,6 +11,9 @@ import { auth, db } from "../lib/firebase";
 import { ROLES, isValidRole } from "../lib/roles";
 
 export const USERS_COLLECTION = "users";
+
+const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({ prompt: "select_account" });
 
 /**
  * @param {import("firebase/auth").User} user
@@ -34,6 +39,8 @@ export async function ensureUserProfile(user, extras = {}) {
       phone,
       role,
       shopIds: [],
+      photoURL: user.photoURL || "",
+      provider: user.providerData?.[0]?.providerId || "password",
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     };
@@ -49,7 +56,18 @@ export async function ensureUserProfile(user, extras = {}) {
     phone: data.phone || phone,
     role: isValidRole(data.role) ? data.role : ROLES.BUYER,
     shopIds: Array.isArray(data.shopIds) ? data.shopIds : [],
+    photoURL: data.photoURL || user.photoURL || "",
   };
+}
+
+/**
+ * Google Sign-In (popup). Works for both new and returning users.
+ * Public-facing name in Firebase (e.g. Mart-Hub) appears on Google's consent screen.
+ */
+export async function loginWithGoogle() {
+  const cred = await signInWithPopup(auth, googleProvider);
+  const profile = await ensureUserProfile(cred.user);
+  return { user: cred.user, profile };
 }
 
 /**
@@ -149,13 +167,21 @@ export function authErrorMessage(err) {
 
   if (
     rawMessage.includes("CONFIGURATION_NOT_FOUND") ||
-    code === "auth/configuration-not-found" ||
-    code === "auth/operation-not-allowed"
+    code === "auth/configuration-not-found"
   ) {
-    return "Firebase Authentication is not set up. In Firebase Console → Authentication → Sign-in method, enable Email/Password, then try again.";
+    return "Firebase Authentication is not fully set up. Enable Google and/or Email/Password under Authentication → Sign-in method.";
   }
 
   switch (code) {
+    case "auth/operation-not-allowed":
+      return "This sign-in method is disabled. Enable Google (or Email/Password) in Firebase Console → Authentication → Sign-in method.";
+    case "auth/popup-closed-by-user":
+    case "auth/cancelled-popup-request":
+      return "Sign-in was cancelled.";
+    case "auth/popup-blocked":
+      return "Pop-up was blocked. Allow pop-ups for this site and try again.";
+    case "auth/account-exists-with-different-credential":
+      return "An account already exists with this email using a different sign-in method.";
     case "auth/email-already-in-use":
       return "An account already exists with this email.";
     case "auth/invalid-email":

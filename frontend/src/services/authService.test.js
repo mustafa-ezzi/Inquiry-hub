@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const createUserWithEmailAndPassword = vi.fn();
 const signInWithEmailAndPassword = vi.fn();
+const signInWithPopup = vi.fn();
 const signOut = vi.fn();
 const updateProfile = vi.fn();
 const getDoc = vi.fn();
@@ -11,8 +12,12 @@ const doc = vi.fn((...args) => ({ path: args.join("/") }));
 const serverTimestamp = vi.fn(() => "ts");
 
 vi.mock("firebase/auth", () => ({
+  GoogleAuthProvider: class {
+    setCustomParameters() {}
+  },
   createUserWithEmailAndPassword: (...a) => createUserWithEmailAndPassword(...a),
   signInWithEmailAndPassword: (...a) => signInWithEmailAndPassword(...a),
+  signInWithPopup: (...a) => signInWithPopup(...a),
   signOut: (...a) => signOut(...a),
   updateProfile: (...a) => updateProfile(...a),
 }));
@@ -35,6 +40,7 @@ describe("authService", () => {
     vi.resetModules();
     createUserWithEmailAndPassword.mockReset();
     signInWithEmailAndPassword.mockReset();
+    signInWithPopup.mockReset();
     signOut.mockReset();
     updateProfile.mockReset();
     getDoc.mockReset();
@@ -115,6 +121,23 @@ describe("authService", () => {
       password: "secret1",
     });
     expect(result.profile.role).toBe("buyer");
+  });
+
+  it("loginWithGoogle uses popup and ensures profile", async () => {
+    const user = {
+      uid: "g1",
+      email: "g@e.com",
+      displayName: "G User",
+      photoURL: "",
+      providerData: [{ providerId: "google.com" }],
+    };
+    signInWithPopup.mockResolvedValue({ user });
+    getDoc.mockResolvedValue({ exists: () => false });
+    setDoc.mockResolvedValue(undefined);
+    const { loginWithGoogle } = await import("./authService");
+    const result = await loginWithGoogle();
+    expect(signInWithPopup).toHaveBeenCalled();
+    expect(result.profile.displayName).toBe("G User");
   });
 
   it("logout signs out", async () => {

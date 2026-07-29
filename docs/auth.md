@@ -2,9 +2,12 @@
 
 ## Auth choice
 
-**Primary:** Email + password via Firebase Authentication.
+**Primary (enabled):** Google Sign-In via Firebase Authentication.  
+Public-facing name on Google’s consent screen: **Mart-Hub** (set in Firebase Console → Authentication → Google).
 
-**Why not phone-first:** Phone OTP needs an SMS provider and Firebase phone Auth setup; email is enough for B2B PK Alpha without that ops cost. Phone can be added later as a second factor or alternate sign-in.
+**Also supported in the app:** Email + password (enable that provider separately if you want the email forms to work).
+
+**Phone OTP:** deferred (needs SMS provider).
 
 ## Roles
 
@@ -57,13 +60,15 @@ firebase emulators:start --only firestore,auth
 ## Console checklist
 
 1. Open [Firebase Console](https://console.firebase.google.com) → your project.
-2. Go to **Build → Authentication** (first visit may ask you to click **Get started**).
-3. Open **Sign-in method** → enable **Email/Password** → **Save**.
-4. Confirm `frontend/.env` values match **Project settings → Your apps** (same `apiKey` / `projectId` / `appId`).
-5. Restart `npm run dev` after any `.env` change.
-6. Deploy Firestore rules before create-shop in production:
-   `firebase deploy --only firestore:rules,storage`
+2. **Build → Authentication** → **Get started** if needed.
+3. **Sign-in method**:
+   - Enable **Google** (public-facing name e.g. **Mart-Hub**) → Save.
+   - Optionally enable **Email/Password** for the email forms.
+4. **Settings → Authorized domains**: keep `localhost` for local dev.
+5. Confirm `frontend/.env` matches **Project settings → Your apps**.
+6. Restart `npm run dev` after `.env` changes.
+7. Deploy rules: `firebase deploy --only firestore:rules,storage`
 
 ### `CONFIGURATION_NOT_FOUND`
 
-This almost always means Authentication (or Email/Password) was never enabled for that project. Complete steps 2–3 above, then retry register/login.
+Auth (or the provider you called) is not enabled. Enable **Google** and/or **Email/Password**, then retry. Email forms will keep failing until Email/Password is enabled — use **Continue with Google** instead.

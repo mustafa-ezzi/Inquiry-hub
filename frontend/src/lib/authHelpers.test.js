@@ -28,7 +28,7 @@ describe("authErrorMessage", () => {
         code: "auth/internal-error",
         message: "CONFIGURATION_NOT_FOUND",
       })
-    ).toMatch(/Email\/Password/i);
+    ).toMatch(/Google and\/or Email\/Password/i);
     expect(authErrorMessage({ message: "boom" })).toBe("boom");
   });
 });
