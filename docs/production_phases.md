@@ -145,7 +145,7 @@ Every privileged action has a **real user identity** and **Firestore (and API) r
 
 - [x] Auth UI (login / register / logout)
 - [x] User profile document + role model
-- [x] `firestore.rules` + emulator tests
+- [x] `firestore.rules` + policy unit tests (`accessControl` mirrors rules; emulator optional per `docs/auth.md`)
 - [x] Protected routes for buyer inquiry history
 
 ### Test gate (100% green)

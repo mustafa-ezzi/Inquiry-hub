@@ -23,4 +23,11 @@ npm run test:coverage
 npm run build
 ```
 
+Verified locally:
+
+- Tests: **50/50** passed
+- Lint: **0 errors**
+- Auth/security modules: `accessControl` ~80% lines, `authService` ~91%, `ProtectedRoute` ~89%, `roles` 100%
+- Build: succeeds
+
 Deploy rules: `firebase deploy --only firestore:rules,storage` (see `auth.md`).
