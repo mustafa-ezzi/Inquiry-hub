@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// InquireHub Phase 2 security rules.
+// InquireHub Phase 5 security rules.
 // Deploy: firebase deploy --only firestore:rules
 // Mirror policy helpers: frontend/src/lib/accessControl.js
 
@@ -44,6 +44,19 @@ service cloud.firestore {
           && get(/databases/$(database)/documents/shops/$(shopId)).data.ownerUid == uid());
     }
 
+    function shopIsSuspended(shopId) {
+      return shopId != ''
+        && exists(/databases/$(database)/documents/shops/$(shopId))
+        && get(/databases/$(database)/documents/shops/$(shopId)).data.get('suspended', false) == true;
+    }
+
+    // Members may update profile + response metrics — not verify/suspend.
+    function shopMemberSafeUpdate() {
+      return request.resource.data.verified == resource.data.verified
+        && request.resource.data.get('suspended', false) == resource.data.get('suspended', false)
+        && request.resource.data.get('suspendedReason', '') == resource.data.get('suspendedReason', '');
+    }
+
     // —— users ——
     match /users/{userId} {
       allow read: if signedIn() && (uid() == userId || isAdmin());
@@ -58,7 +71,6 @@ service cloud.firestore {
           uid() == userId
           && request.resource.data.role != 'admin'
           && (
-            // allow buyer → vendor when attaching shops
             request.resource.data.role in ['buyer', 'vendor']
           )
         )
@@ -66,15 +78,16 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // —— catalog (public read) ——
+    // —— catalog ——
     match /categories/{id} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
     match /products/{id} {
-      allow read: if true;
-      allow create, update: if signedIn() && (
+      // Hidden listings are admin-only to read.
+      allow read: if resource.data.get('hidden', false) != true || isAdmin();
+      allow create: if signedIn() && (
         isAdmin()
         || (
           isVendor()
@@ -82,6 +95,24 @@ service cloud.firestore {
           && isShopMember(
             request.resource.data.get('shopId', request.resource.data.get('shop_id', ''))
           )
+          && !shopIsSuspended(
+            request.resource.data.get('shopId', request.resource.data.get('shop_id', ''))
+          )
+          && request.resource.data.get('hidden', false) == false
+        )
+      );
+      allow update: if signedIn() && (
+        isAdmin()
+        || (
+          isVendor()
+          && isShopMember(
+            resource.data.get('shopId', resource.data.get('shop_id', ''))
+          )
+          && !shopIsSuspended(
+            resource.data.get('shopId', resource.data.get('shop_id', ''))
+          )
+          // Vendors cannot toggle hidden themselves.
+          && request.resource.data.get('hidden', false) == resource.data.get('hidden', false)
         )
       );
       allow delete: if signedIn() && (
@@ -99,16 +130,29 @@ service cloud.firestore {
       allow read: if true;
       allow create: if signedIn()
         && request.resource.data.ownerUid == uid()
-        && request.resource.data.verified == false;
+        && request.resource.data.verified == false
+        && request.resource.data.get('suspended', false) == false;
       allow update: if signedIn() && (
         isAdmin()
-        || resource.data.ownerUid == uid()
-        || isShopMember(shopId)
+        || (
+          (resource.data.ownerUid == uid() || isShopMember(shopId))
+          && shopMemberSafeUpdate()
+        )
       );
       allow delete: if isAdmin();
     }
 
-    // —— private inquiry threads (Phase 3 persistence) ——
+    // —— moderation reports (Phase 5) ——
+    match /reports/{reportId} {
+      allow read: if isAdmin();
+      allow create: if signedIn()
+        && request.resource.data.reporterUid == uid()
+        && request.resource.data.status == 'open';
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // —— private inquiry threads ——
     match /inquiries/{inquiryId} {
       allow read: if signedIn() && (
         isAdmin()
@@ -119,8 +163,10 @@ service cloud.firestore {
         && request.resource.data.buyerUid == uid();
       allow update: if signedIn() && (
         isAdmin()
-        || resource.data.buyerUid == uid()
-        || isShopMember(resource.data.shopId)
+        || (
+          (resource.data.buyerUid == uid() || isShopMember(resource.data.shopId))
+          && request.resource.data.get('hidden', false) == resource.data.get('hidden', false)
+        )
       );
       allow delete: if isAdmin();
 

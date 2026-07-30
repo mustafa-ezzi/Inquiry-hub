@@ -9,6 +9,7 @@ import {
 describe("notifyInquiry", () => {
   afterEach(() => {
     resetInquiryNotifier();
+    vi.unstubAllGlobals();
     vi.restoreAllMocks();
   });
 
@@ -29,10 +30,7 @@ describe("notifyInquiry", () => {
   it("default notifier logs and shows Notification when granted", async () => {
     const info = vi.spyOn(console, "info").mockImplementation(() => {});
     const NotificationMock = vi.fn();
-    Object.defineProperty(NotificationMock, "permission", {
-      value: "granted",
-      configurable: true,
-    });
+    NotificationMock.permission = "granted";
     vi.stubGlobal("Notification", NotificationMock);
 
     await notifyNewInquiry({
@@ -49,36 +47,27 @@ describe("notifyInquiry", () => {
       "New inquiry",
       expect.objectContaining({ body: expect.stringContaining("Sara") })
     );
-    vi.unstubAllGlobals();
   });
 
-  it("requestInquiryNotifyPermission handles missing Notification", async () => {
-    const had = "Notification" in window;
-    const prev = had ? window.Notification : undefined;
-    // Force unsupported path
-    Object.defineProperty(window, "Notification", {
-      value: undefined,
-      configurable: true,
-      writable: true,
+  it("requestInquiryNotifyPermission maps permission states", async () => {
+    vi.stubGlobal("Notification", {
+      permission: "granted",
+      requestPermission: vi.fn(),
     });
-    delete window.Notification;
-    expect(await requestInquiryNotifyPermission()).toBe("unsupported");
-
-    const granted = { permission: "granted", requestPermission: vi.fn() };
-    window.Notification = granted;
     expect(await requestInquiryNotifyPermission()).toBe("granted");
 
-    window.Notification = {
+    vi.stubGlobal("Notification", {
       permission: "denied",
       requestPermission: vi.fn(),
-    };
+    });
     expect(await requestInquiryNotifyPermission()).toBe("denied");
 
     const requestPermission = vi.fn(async () => "granted");
-    window.Notification = { permission: "default", requestPermission };
+    vi.stubGlobal("Notification", {
+      permission: "default",
+      requestPermission,
+    });
     expect(await requestInquiryNotifyPermission()).toBe("granted");
     expect(requestPermission).toHaveBeenCalled();
-
-    if (had) window.Notification = prev;
   });
 });

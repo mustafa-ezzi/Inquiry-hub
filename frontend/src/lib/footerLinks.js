@@ -2,6 +2,12 @@
  * Footer / legal link helpers — maps display labels to in-app routes.
  */
 
+import {
+  LEGAL_PAGES as LEGAL_CONTENT_PAGES,
+  SUPPORT_EMAIL,
+  SUPPORT_WHATSAPP_URL,
+} from "./legalContent";
+
 const LABEL_TO_PATH = {
   "about us": "/about",
   about: "/about",
@@ -21,29 +27,7 @@ export function footerLinkPath(label) {
   return LABEL_TO_PATH[label.trim().toLowerCase()] ?? null;
 }
 
-export const LEGAL_PAGES = [
-  {
-    path: "/about",
-    title: "About Us",
-    summary:
-      "InquireHub.PK helps buyers find hardware and metals suppliers across Pakistan and start quote conversations with vendors.",
-  },
-  {
-    path: "/contact",
-    title: "Contact",
-    summary:
-      "For support or partnership inquiries, email hello@inquirehub.pk. Full support channels will expand as we launch.",
-  },
-  {
-    path: "/privacy",
-    title: "Privacy Policy",
-    summary:
-      "We collect contact details you provide for inquiries (such as name and phone) to connect you with vendors. This placeholder will be replaced with a reviewed policy before GA (Phase 6).",
-  },
-  {
-    path: "/terms",
-    title: "Terms of Service",
-    summary:
-      "By using InquireHub.PK you agree to use the platform for legitimate B2B inquiries. This placeholder will be replaced with reviewed terms before GA (Phase 6).",
-  },
-];
+/** @deprecated Prefer LEGAL_CONTENT; kept for tests / callers expecting this shape. */
+export const LEGAL_PAGES = LEGAL_CONTENT_PAGES;
+
+export { SUPPORT_EMAIL, SUPPORT_WHATSAPP_URL };

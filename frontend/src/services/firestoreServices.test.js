@@ -29,6 +29,14 @@ vi.mock("firebase/firestore", () => ({
 
 vi.mock("../lib/firebase", () => ({ db: {} }));
 
+vi.mock("../services/analytics", () => ({
+  ANALYTICS_EVENTS: {
+    SHOP_VERIFIED: "shop_verified",
+    SHOP_SUSPENDED: "shop_suspended",
+  },
+  trackEvent: vi.fn(async () => undefined),
+}));
+
 describe("productService + shopsService fetches", () => {
   beforeEach(() => {
     vi.resetModules();
@@ -74,6 +82,25 @@ describe("productService + shopsService fetches", () => {
     await updateShop("s1", { shopName: " New ", location: " Karachi " });
     expect(updateDoc).toHaveBeenCalled();
     await expect(updateShop("", { shopName: "X" })).rejects.toThrow(/Missing/);
+  });
+
+  it("setShopVerified and setShopSuspended update docs", async () => {
+    updateDoc.mockResolvedValue(undefined);
+    const { setShopVerified, setShopSuspended, mapShopForCard } = await import(
+      "../services/shopsService"
+    );
+    await setShopVerified("s1", true);
+    await setShopSuspended("s1", true, "abuse");
+    expect(updateDoc).toHaveBeenCalled();
+    const mapped = mapShopForCard("s1", {
+      shopName: "A",
+      verified: true,
+      suspended: true,
+      responseMetrics: { avgFirstReplyMs: 1000, sampleSize: 3 },
+    });
+    expect(mapped.isVerified).toBe(true);
+    expect(mapped.suspended).toBe(true);
+    expect(mapped.repliesQuickly).toBe(true);
   });
 
   it("fetchCategories maps and sorts", async () => {

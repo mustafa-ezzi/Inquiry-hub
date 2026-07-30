@@ -19,6 +19,13 @@ import {
   validateInquiryOnboarding,
 } from "../lib/inquiryValidation";
 import { notifyNewInquiry } from "./notifyInquiry";
+import { ANALYTICS_EVENTS, trackEvent } from "./analytics";
+import { mergeFirstReplySample } from "../lib/responseBadge";
+import {
+  fetchShopById,
+  updateShopResponseMetrics,
+} from "./shopsService";
+import { reportInquiryFailure } from "./monitoring";
 
 export const INQUIRIES_COLLECTION = "inquiries";
 
@@ -179,6 +186,22 @@ export async function createFirestoreInquiry({
     });
   } catch (err) {
     console.warn("notifyNewInquiry failed", err);
+    await reportInquiryFailure("notify_new_inquiry", err, {
+      inquiryId: inquiryRef.id,
+    });
+  }
+
+  try {
+    await trackEvent(ANALYTICS_EVENTS.INQUIRY_CREATED, {
+      inquiryId: inquiryRef.id,
+      shopId: shopId ? String(shopId) : "",
+      productId: String(productId),
+    });
+  } catch (err) {
+    console.warn("trackEvent inquiry_created failed", err);
+    await reportInquiryFailure("track_inquiry_created", err, {
+      inquiryId: inquiryRef.id,
+    });
   }
 
   return { inquiryId: inquiryRef.id, existing: false };
@@ -301,18 +324,71 @@ export async function sendFirestoreMessage({
     throw new Error("Missing inquiry or sender.");
   }
 
+  const isVendor = role === "vendor";
+  let inquirySnap = null;
+  if (isVendor) {
+    inquirySnap = await getDoc(doc(db, INQUIRIES_COLLECTION, inquiryId));
+  }
+
   await addDoc(messagesCol(inquiryId), {
-    role: role === "vendor" ? "vendor" : "buyer",
-    senderName: (senderName || "").trim() || (role === "vendor" ? "Vendor" : "Buyer"),
+    role: isVendor ? "vendor" : "buyer",
+    senderName: (senderName || "").trim() || (isVendor ? "Vendor" : "Buyer"),
     senderRole: senderRole || "",
     senderUid,
     body: text,
     createdAt: serverTimestamp(),
   });
 
-  await updateDoc(doc(db, INQUIRIES_COLLECTION, inquiryId), {
-    status: statusAfterMessage(role === "vendor" ? "vendor" : "buyer"),
+  const inquiryPatch = {
+    status: statusAfterMessage(isVendor ? "vendor" : "buyer"),
     preview: text.slice(0, 200),
     updatedAt: serverTimestamp(),
-  });
+  };
+
+  const wasFirstVendorReply =
+    isVendor &&
+    inquirySnap?.exists() &&
+    !inquirySnap.data()?.firstVendorReplyAt;
+
+  if (wasFirstVendorReply) {
+    inquiryPatch.firstVendorReplyAt = serverTimestamp();
+  }
+
+  await updateDoc(doc(db, INQUIRIES_COLLECTION, inquiryId), inquiryPatch);
+
+  if (wasFirstVendorReply) {
+    const data = inquirySnap.data() || {};
+    const shopId = data.shopId || "";
+    let createdAt = Date.now();
+    const raw = data.createdAt;
+    if (typeof raw === "number") createdAt = raw;
+    else if (raw?.toMillis) createdAt = raw.toMillis();
+    else if (raw?.seconds) createdAt = raw.seconds * 1000;
+    const ttfrMs = Math.max(0, Date.now() - createdAt);
+
+    try {
+      await trackEvent(ANALYTICS_EVENTS.FIRST_VENDOR_REPLY, {
+        inquiryId,
+        shopId,
+        ttfrMs,
+      });
+    } catch (err) {
+      console.warn("trackEvent first_vendor_reply failed", err);
+      await reportInquiryFailure("track_first_vendor_reply", err, { inquiryId });
+    }
+
+    if (shopId) {
+      try {
+        const shop = await fetchShopById(shopId);
+        const next = mergeFirstReplySample(shop?.responseMetrics, ttfrMs);
+        await updateShopResponseMetrics(shopId, next);
+      } catch (err) {
+        console.warn("updateShopResponseMetrics failed", err);
+        await reportInquiryFailure("update_response_metrics", err, {
+          inquiryId,
+          shopId,
+        });
+      }
+    }
+  }
 }

@@ -1,4 +1,5 @@
 import { memo, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 function InquiryOnboardingForm({
   onSubmit,
@@ -10,6 +11,7 @@ function InquiryOnboardingForm({
   const [buyerName, setBuyerName] = useState(defaultName);
   const [phone, setPhone] = useState(defaultPhone);
   const [message, setMessage] = useState("");
+  const [consent, setConsent] = useState(false);
 
   useEffect(() => {
     if (defaultName) setBuyerName(defaultName);
@@ -18,7 +20,8 @@ function InquiryOnboardingForm({
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit({ buyerName, phone, message });
+    if (!consent) return;
+    onSubmit({ buyerName, phone, message, consent: true });
   };
 
   return (
@@ -76,6 +79,28 @@ function InquiryOnboardingForm({
               maxLength={2000}
             />
           </div>
+          <label className="flex items-start gap-2.5 text-sm leading-5 text-slate-600">
+            <input
+              type="checkbox"
+              checked={consent}
+              onChange={(e) => setConsent(e.target.checked)}
+              className="mt-1 h-4 w-4 rounded border-slate-300 text-[#0F6B36] focus:ring-[#0F6B36]"
+              required
+            />
+            <span>
+              I agree that my name and phone may be shared with this vendor to
+              handle my inquiry, as described in the{" "}
+              <Link
+                to="/privacy"
+                className="font-semibold text-[#0F6B36] underline"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Privacy Policy
+              </Link>
+              .
+            </span>
+          </label>
           {error ? (
             <p className="text-sm font-medium text-rose-600" role="alert">
               {error}
@@ -83,7 +108,7 @@ function InquiryOnboardingForm({
           ) : null}
           <button
             type="submit"
-            disabled={submitting}
+            disabled={submitting || !consent}
             className="min-h-[48px] rounded-xl bg-[#0F6B36] px-4 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[#0d5f30] disabled:opacity-60"
           >
             {submitting ? "Starting…" : "Start inquiry"}

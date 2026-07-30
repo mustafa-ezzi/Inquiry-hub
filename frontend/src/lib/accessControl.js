@@ -9,6 +9,13 @@ import { isAdmin, isVendor, ROLES, SHOP_MEMBER_ROLES } from "./roles";
  * @typedef {{ uid: string | null, role?: string | null, shopIds?: string[] }} AuthContext
  */
 
+/** Trust fields only admins may change on shops (responseMetrics may be written by shop members). */
+export const SHOP_TRUST_FIELDS = Object.freeze([
+  "verified",
+  "suspended",
+  "suspendedReason",
+]);
+
 /**
  * @param {AuthContext | null | undefined} auth
  */
@@ -18,8 +25,12 @@ export function isSignedIn(auth) {
 
 /**
  * Public catalog reads (products, categories, shops list/detail).
+ * Hidden products are not public (client filter + rules).
+ * @param {AuthContext | null | undefined} auth
+ * @param {{ hidden?: boolean } | null | undefined} [product]
  */
-export function canReadCatalog(_auth) {
+export function canReadCatalog(auth, product) {
+  if (product?.hidden) return isAdmin(auth?.role);
   return true;
 }
 
@@ -32,8 +43,9 @@ export function canCreateShop(auth) {
 }
 
 /**
+ * Profile fields (name/location) for shop members; admins always.
  * @param {AuthContext | null | undefined} auth
- * @param {{ ownerUid?: string, memberUids?: string[] } | null | undefined} shop
+ * @param {{ ownerUid?: string, memberUids?: string[], id?: string } | null | undefined} shop
  */
 export function canUpdateShop(auth, shop) {
   if (!isSignedIn(auth) || !shop) return false;
@@ -49,9 +61,57 @@ export function canUpdateShop(auth, shop) {
 }
 
 /**
- * Products: anyone can read; create/update only shop members / admin.
+ * Non-admins cannot change trust/ops fields on a shop patch.
  * @param {AuthContext | null | undefined} auth
- * @param {{ shopId?: string, ownerUid?: string } | null | undefined} product
+ * @param {Record<string, unknown> | null | undefined} patch
+ */
+export function canPatchShopFields(auth, patch) {
+  if (!isSignedIn(auth) || !patch) return false;
+  if (isAdmin(auth.role)) return true;
+  return !SHOP_TRUST_FIELDS.some((key) =>
+    Object.prototype.hasOwnProperty.call(patch, key)
+  );
+}
+
+/**
+ * @param {AuthContext | null | undefined} auth
+ */
+export function canVerifyShop(auth) {
+  return isSignedIn(auth) && isAdmin(auth.role);
+}
+
+/**
+ * @param {AuthContext | null | undefined} auth
+ */
+export function canSuspendShop(auth) {
+  return isSignedIn(auth) && isAdmin(auth.role);
+}
+
+/**
+ * @param {AuthContext | null | undefined} auth
+ */
+export function canHideProduct(auth) {
+  return isSignedIn(auth) && isAdmin(auth.role);
+}
+
+/**
+ * @param {AuthContext | null | undefined} auth
+ */
+export function canAccessAdmin(auth) {
+  return isSignedIn(auth) && isAdmin(auth.role);
+}
+
+/**
+ * @param {AuthContext | null | undefined} auth
+ */
+export function canCreateReport(auth) {
+  return isSignedIn(auth);
+}
+
+/**
+ * Products: anyone can read non-hidden; create/update only shop members / admin.
+ * @param {AuthContext | null | undefined} auth
+ * @param {{ shopId?: string, ownerUid?: string, hidden?: boolean } | null | undefined} product
  */
 export function canWriteProduct(auth, product) {
   if (!isSignedIn(auth)) return false;
@@ -66,8 +126,7 @@ export function canWriteProduct(auth, product) {
 }
 
 /**
- * Private inquiry threads (future Firestore collection `inquiries`).
- * Unauthenticated cannot read. Buyer owner or vendor of related shop / admin.
+ * Private inquiry threads.
  * @param {AuthContext | null | undefined} auth
  * @param {{ buyerUid?: string, shopId?: string } | null | undefined} inquiry
  */
@@ -94,7 +153,6 @@ export function canCreateInquiryMessage(auth, inquiry) {
 }
 
 /**
- * Users may read/write their own profile doc; admin can read all.
  * @param {AuthContext | null | undefined} auth
  * @param {string} profileUid
  */
@@ -113,13 +171,12 @@ export function canWriteUserProfile(auth, profileUid, incoming) {
   if (!isSignedIn(auth)) return false;
   if (isAdmin(auth.role)) return true;
   if (auth.uid !== profileUid) return false;
-  // Clients cannot escalate to admin
   if (incoming?.role === ROLES.ADMIN && auth.role !== ROLES.ADMIN) return false;
   return true;
 }
 
 /**
- * Vendor portal route gate (Phase 4 UI; prepared here).
+ * Vendor portal route gate.
  * @param {AuthContext | null | undefined} auth
  */
 export function canAccessVendorPortal(auth) {

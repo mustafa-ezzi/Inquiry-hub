@@ -21,6 +21,8 @@ import InquiryComposer from "../components/inquiry/InquiryComposer";
 import InquiryMessageThread from "../components/inquiry/InquiryMessageThread";
 import InquiryOnboardingForm from "../components/inquiry/InquiryOnboardingForm";
 import InquiryProductPanel from "../components/inquiry/InquiryProductPanel";
+import ReportControl from "../components/ReportControl";
+import { REPORT_TARGET } from "../services/moderationService";
 
 const SESSION_KEY = (productId) => `inquiry_session_${productId}`;
 
@@ -299,6 +301,14 @@ function InquiryChatPage() {
         location={view.location}
         onBack={() => navigate(-1)}
       />
+      <div className="border-b border-slate-100 bg-white px-4 py-2">
+        <ReportControl
+          targetType={
+            inquiryId ? REPORT_TARGET.INQUIRY : REPORT_TARGET.PRODUCT
+          }
+          targetId={inquiryId || productId}
+        />
+      </div>
 
       <div className="mx-auto flex min-h-0 w-full max-w-container flex-1 flex-col lg:flex-row">
         <InquiryProductPanel

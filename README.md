@@ -38,4 +38,12 @@ CI runs lint → test → build on every PR and push to `main` (see `.github/wor
 
 ## Environments
 
-Copy `frontend/.env.example` → `frontend/.env`. Required Firebase keys are listed there. Optional `VITE_INQUIRY_API_BASE` enables remote inquiry API; otherwise chat uses browser `localStorage` (demo only).
+See [`docs/environments.md`](docs/environments.md) for staging vs production Firebase projects.
+
+Copy `frontend/.env.example` → `frontend/.env`. Required Firebase keys are listed there. Production inquiry path is **Firestore** (do not set `VITE_INQUIRY_DEMO_LOCAL` in prod). Optional `VITE_ERROR_WEBHOOK_URL` for error alerts.
+
+## Launch docs
+
+- Phase 6 status: [`docs/phase_6_status.md`](docs/phase_6_status.md)
+- Alpha checklist: [`docs/alpha_launch_checklist.md`](docs/alpha_launch_checklist.md)
+- Runbooks: [`docs/runbooks.md`](docs/runbooks.md)

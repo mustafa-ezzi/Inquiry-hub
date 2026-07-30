@@ -258,10 +258,10 @@ Enough **trust and ops** to invite real vendors beyond the founding set.
 
 ### Deliverables
 
-- [ ] Verification + admin moderation MVP
-- [ ] Trust badges backed by data
-- [ ] Analytics events for core funnel
-- [ ] Ops runbook: suspend shop, handle abuse
+- [x] Verification + admin moderation MVP
+- [x] Trust badges backed by data
+- [x] Analytics events for core funnel
+- [x] Ops runbook: suspend shop, handle abuse
 
 ### Test gate (100% green)
 
@@ -314,11 +314,11 @@ Ship a **production release** that is operable, compliant enough to launch, and 
 
 ### Deliverables
 
-- [ ] Legal pages live and linked
-- [ ] Prod vs staging environments documented
-- [ ] Monitoring + alerts
-- [ ] Alpha launch checklist signed
-- [ ] Version bump from `0.0.0` to semver release
+- [x] Legal pages live and linked
+- [x] Prod vs staging environments documented
+- [x] Monitoring + alerts
+- [x] Alpha launch checklist signed
+- [x] Version bump from `0.0.0` to semver release
 
 ### Test gate (100% green)
 

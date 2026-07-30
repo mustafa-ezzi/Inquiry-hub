@@ -1,8 +1,13 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import PwaUpdateScreen from "./components/PwaUpdateScreen";
+import CookieConsentBanner from "./components/CookieConsentBanner";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AdminLayout from "./components/admin/AdminLayout";
 import VendorLayout from "./components/vendor/VendorLayout";
 import { AuthProvider } from "./context/AuthContext";
+import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
+import AdminReportsPage from "./pages/admin/AdminReportsPage";
+import AdminShopsPage from "./pages/admin/AdminShopsPage";
 import HomePage from "./pages/HomePage";
 import InquiriesListPage from "./pages/InquiriesListPage";
 import InquiryChatPage from "./pages/InquiryChatPage";
@@ -25,6 +30,7 @@ export function AppRoutes() {
   return (
     <>
       <PwaUpdateScreen />
+      <CookieConsentBanner />
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/product/:productId" element={<ProductDetailsPage />} />
@@ -67,6 +73,18 @@ export function AppRoutes() {
           <Route path="inbox/:inquiryId" element={<VendorThreadPage />} />
           <Route path="products" element={<VendorProductsPage />} />
           <Route path="shop" element={<VendorShopPage />} />
+        </Route>
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute roles={[ROLES.ADMIN]}>
+              <AdminLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<AdminDashboardPage />} />
+          <Route path="shops" element={<AdminShopsPage />} />
+          <Route path="reports" element={<AdminReportsPage />} />
         </Route>
       </Routes>
     </>

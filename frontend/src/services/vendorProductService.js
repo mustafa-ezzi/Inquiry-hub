@@ -16,7 +16,7 @@ import { PRODUCTS_COLLECTION, fetchProductsByShopId } from "./productService";
  * @param {string} shopId
  */
 export async function listVendorProducts(shopId) {
-  return fetchProductsByShopId(shopId, 80);
+  return fetchProductsByShopId(shopId, 80, { includeHidden: true });
 }
 
 /**

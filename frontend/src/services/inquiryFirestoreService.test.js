@@ -33,6 +33,23 @@ vi.mock("../lib/firebase", () => ({ db: {} }));
 vi.mock("./notifyInquiry", () => ({
   notifyNewInquiry: (...a) => notifyNewInquiryMock(...a),
 }));
+vi.mock("./analytics", () => ({
+  ANALYTICS_EVENTS: {
+    INQUIRY_CREATED: "inquiry_created",
+    FIRST_VENDOR_REPLY: "first_vendor_reply",
+  },
+  trackEvent: vi.fn(async () => undefined),
+}));
+vi.mock("./monitoring", () => ({
+  reportInquiryFailure: vi.fn(async () => undefined),
+}));
+vi.mock("./shopsService", () => ({
+  fetchShopById: vi.fn(async () => ({
+    id: "s1",
+    responseMetrics: { sampleSize: 0, avgFirstReplyMs: 0 },
+  })),
+  updateShopResponseMetrics: vi.fn(async () => undefined),
+}));
 
 describe("inquiryFirestoreService", () => {
   beforeEach(() => {

@@ -28,6 +28,9 @@ Creating a shop sets `ownerUid`, appends `shopIds`, and upgrades role to `vendor
 | `/login`, `/register` | Public |
 | `/inquiries`, `/profile` | Signed in |
 | `/vendor` | `vendor` or `admin` |
+| `/admin` | `admin` only (Phase 5) |
+
+Shop field `verified` / `suspended` may only be changed by admins (Firestore rules). Members may update name, location, and response metrics.
 
 ## Deploy rules
 

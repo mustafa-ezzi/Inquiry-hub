@@ -5,6 +5,7 @@ function VendorCard({
   location,
   isVerified,
   verifiedLabel,
+  repliesQuickly,
   viewShopLabel,
   href,
   onClick,
@@ -84,6 +85,7 @@ function VendorCard({
       </div>
 
       {/* Verified / unverified badge */}
+      <div className="flex flex-wrap gap-2">
       {isVerified ? (
         <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-[#0F6B36]/20 bg-[#f0faf5] px-2.5 py-1">
           <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
@@ -106,6 +108,14 @@ function VendorCard({
           </span>
         </span>
       )}
+      {repliesQuickly ? (
+        <span className="inline-flex w-fit items-center rounded-full border border-sky-200 bg-sky-50 px-2.5 py-1">
+          <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-sky-800">
+            Replies quickly
+          </span>
+        </span>
+      ) : null}
+      </div>
 
       {/* Meta chips */}
       {(productCount || rating || memberSince) && (

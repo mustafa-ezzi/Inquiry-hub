@@ -115,6 +115,7 @@ function ShopPage() {
                   </h1>
                   <p className="mt-1 text-sm text-slate-500">{shop.location}</p>
                 </div>
+                <div className="flex flex-wrap items-center gap-2">
                 {shop.isVerified ? (
                   <span className="inline-flex items-center gap-1.5 rounded-full border border-[#0F6B36]/20 bg-[#f0faf5] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.1em] text-[#0F6B36]">
                     {shop.verifiedLabel || "Verified"}
@@ -124,7 +125,23 @@ function ShopPage() {
                     Unverified
                   </span>
                 )}
+                {shop.repliesQuickly ? (
+                  <span className="inline-flex items-center rounded-full border border-sky-200 bg-sky-50 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.1em] text-sky-800">
+                    Replies quickly
+                  </span>
+                ) : null}
+                {shop.suspended ? (
+                  <span className="inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.1em] text-rose-700">
+                    Suspended
+                  </span>
+                ) : null}
+                </div>
               </div>
+              {shop.suspended ? (
+                <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+                  This shop is currently suspended. Listings may be unavailable.
+                </p>
+              ) : null}
             </header>
 
             <h2 className="mb-4 text-lg font-bold text-[#111827]">

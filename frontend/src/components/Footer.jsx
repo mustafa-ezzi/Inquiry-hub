@@ -4,9 +4,11 @@ import BrandLogo from "./BrandLogo";
 import Container from "./Container";
 import { footerLinkPath } from "../lib/footerLinks";
 
+import { SUPPORT_WHATSAPP_URL } from "../lib/legalContent";
+
 const SOCIAL_HREF = {
   Facebook: "https://www.facebook.com/",
-  WhatsApp: "https://wa.me/",
+  WhatsApp: SUPPORT_WHATSAPP_URL,
   LinkedIn: "https://www.linkedin.com/",
 };
 

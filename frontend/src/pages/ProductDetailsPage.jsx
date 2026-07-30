@@ -8,6 +8,8 @@ import { getPrimaryProductImageUrl } from "../lib/productMedia";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import BottomNav from "../components/BottomNav";
+import ReportControl from "../components/ReportControl";
+import { REPORT_TARGET } from "../services/moderationService";
 
 /* ── tiny helpers ─────────────────────────────────────────── */
 
@@ -338,6 +340,12 @@ function ProductDetailsPage() {
                             </svg>
                             Send Inquiry
                         </button>
+                        <div className="mt-3">
+                            <ReportControl
+                                targetType={REPORT_TARGET.PRODUCT}
+                                targetId={productId}
+                            />
+                        </div>
                     </div>
                 </div>
 

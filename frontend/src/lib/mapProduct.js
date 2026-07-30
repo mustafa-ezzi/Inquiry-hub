@@ -127,5 +127,6 @@ export function mapProductRecord(product, fallbackId) {
     vendorVerified,
     verifiedLabel: vendorVerified ? verifiedLabel : "",
     inquiryLabel,
+    hidden: Boolean(product.hidden),
   };
 }

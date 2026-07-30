@@ -27,6 +27,9 @@ vi.mock("./context/AuthContext", () => ({
 vi.mock("./components/PwaUpdateScreen", () => ({
   default: () => null,
 }));
+vi.mock("./components/CookieConsentBanner", () => ({
+  default: () => null,
+}));
 
 vi.mock("./pages/HomePage", () => ({
   default: () => <div>Home route</div>,
@@ -63,6 +66,12 @@ vi.mock("./components/vendor/VendorLayout", () => ({
 }));
 vi.mock("./pages/vendor/VendorDashboardPage", () => ({
   default: () => <div>Vendor dashboard</div>,
+}));
+vi.mock("./components/admin/AdminLayout", () => ({
+  default: () => <div>Admin portal route</div>,
+}));
+vi.mock("./pages/admin/AdminDashboardPage", () => ({
+  default: () => <div>Admin dashboard</div>,
 }));
 
 function renderAt(path) {

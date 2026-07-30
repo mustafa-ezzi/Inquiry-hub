@@ -4,7 +4,7 @@ import Footer from "../components/Footer";
 import Header from "../components/Header";
 import { useAuth } from "../context/AuthContext";
 import { siteContent } from "../data/inquiryData";
-import { canAccessVendorPortal } from "../lib/accessControl";
+import { canAccessAdmin, canAccessVendorPortal } from "../lib/accessControl";
 
 function ProfilePage() {
   const { profile, user, logout, saveContact, loading } = useAuth();
@@ -43,6 +43,11 @@ function ProfilePage() {
   }
 
   const vendorOk = canAccessVendorPortal({
+    uid: user?.uid,
+    role: profile?.role,
+    shopIds: profile?.shopIds,
+  });
+  const adminOk = canAccessAdmin({
     uid: user?.uid,
     role: profile?.role,
     shopIds: profile?.shopIds,
@@ -107,6 +112,14 @@ function ProfilePage() {
           >
             My inquiries
           </Link>
+          {adminOk ? (
+            <Link
+              to="/admin"
+              className="rounded-xl border border-slate-900 bg-slate-900 px-4 py-3 text-sm font-semibold text-white"
+            >
+              Admin console
+            </Link>
+          ) : null}
           {vendorOk ? (
             <Link
               to="/vendor"
