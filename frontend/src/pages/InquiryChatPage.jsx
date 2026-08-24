@@ -15,7 +15,7 @@ import {
   subscribeMessages,
   usesFirestoreInquiries,
 } from "../services/inquiryChatApi";
-import BottomNav from "../components/BottomNav";
+import AppBottomNav from "../components/AppBottomNav";
 import InquiryChatHeader from "../components/inquiry/InquiryChatHeader";
 import InquiryComposer from "../components/inquiry/InquiryComposer";
 import InquiryMessageThread from "../components/inquiry/InquiryMessageThread";
@@ -73,7 +73,6 @@ function InquiryChatPage() {
   const [onboardingSubmitting, setOnboardingSubmitting] = useState(false);
   const [onboardingError, setOnboardingError] = useState("");
   const [sending, setSending] = useState(false);
-  const [activeBottomNavItem, setActiveBottomNavItem] = useState("inquiry");
 
   const requireAuth = usesFirestoreInquiries() || getInquiryBackend() === "rest";
   const view = useMemo(() => buildInquiryProductView(product), [product]);
@@ -240,24 +239,7 @@ function InquiryChatPage() {
     [inquiryId, productId, buyerName, user]
   );
 
-  const handleBottomNav = useCallback(
-    (itemId) => {
-      setActiveBottomNavItem(itemId);
-      if (itemId === "home") navigate("/");
-      else if (itemId === "categories") navigate("/");
-      else if (itemId === "inquiry") navigate("/inquiries");
-      else if (itemId === "profile") navigate("/profile");
-    },
-    [navigate]
-  );
-
-  const bottomNav = (
-    <BottomNav
-      items={siteContent.bottomNav}
-      activeItemId={activeBottomNavItem}
-      onItemSelect={handleBottomNav}
-    />
-  );
+  const bottomNav = <AppBottomNav activeItemId="inquiry" />;
 
   if (productLoading || authLoading) {
     return (

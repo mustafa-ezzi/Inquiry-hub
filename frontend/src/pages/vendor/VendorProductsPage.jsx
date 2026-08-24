@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useOutletContext } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { fetchCategories } from "../../services/categoriesService";
 import {
   createVendorProduct,
   deleteVendorProduct,
@@ -13,6 +14,7 @@ const emptyForm = {
   price: "",
   description: "",
   category: "",
+  categoryId: "",
   imageUrl: "",
   location: "",
 };
@@ -21,6 +23,7 @@ function VendorProductsPage() {
   const { shopId } = useOutletContext();
   const { user } = useAuth();
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [formError, setFormError] = useState("");
@@ -53,6 +56,21 @@ function VendorProductsPage() {
     void load();
   }, [load]);
 
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const cats = await fetchCategories();
+        if (!cancelled) setCategories(cats);
+      } catch {
+        if (!cancelled) setCategories([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const openCreate = () => {
     setEditingId(null);
     setForm(emptyForm);
@@ -62,11 +80,14 @@ function VendorProductsPage() {
 
   const openEdit = (p) => {
     setEditingId(p.id);
+    const catId = String(p.categoryId || p.category_id || "");
+    const catName = String(p.category || "");
     setForm({
       name: p.name || "",
       price: p.price === "Get Quote" ? "" : p.price || "",
       description: p.description || "",
-      category: p.category || "",
+      category: catName,
+      categoryId: catId,
       imageUrl: p.imageSrc || "",
       location: p.location || "",
     });
@@ -80,13 +101,18 @@ function VendorProductsPage() {
     setSaving(true);
     setFormError("");
     try {
+      const payload = {
+        ...form,
+        category: form.category,
+        categoryId: form.categoryId,
+      };
       if (editingId) {
-        await updateVendorProduct(editingId, form);
+        await updateVendorProduct(editingId, payload);
       } else {
         await createVendorProduct({
           shopId,
           ownerUid: user.uid,
-          ...form,
+          ...payload,
         });
       }
       setShowForm(false);
@@ -113,7 +139,10 @@ function VendorProductsPage() {
   if (!shopId) {
     return (
       <p className="text-sm text-slate-500">
-        Link a shop before managing products.
+        <Link to="/vendor/shop" className="font-semibold text-[#0F6B36] underline">
+          Create a shop
+        </Link>{" "}
+        before managing products.
       </p>
     );
   }
@@ -124,7 +153,7 @@ function VendorProductsPage() {
         <div>
           <h1 className="text-2xl font-extrabold text-slate-900">Products</h1>
           <p className="mt-1 text-sm text-slate-600">
-            Create and edit listings. Use an image URL (Storage uploads in a later phase).
+            Create and edit listings. Use an HTTPS image URL for now.
           </p>
         </div>
         <button
@@ -145,7 +174,7 @@ function VendorProductsPage() {
       {showForm ? (
         <form
           onSubmit={onSubmit}
-          className="mt-6 space-y-3 rounded-2xl border border-slate-200 bg-white p-4"
+          className="mt-6 space-y-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
         >
           <h2 className="font-bold text-slate-900">
             {editingId ? "Edit product" : "New product"}
@@ -161,12 +190,46 @@ function VendorProductsPage() {
             value={form.price}
             onChange={(v) => setForm((f) => ({ ...f, price: v }))}
           />
-          <Field
-            label="Category"
-            value={form.category}
-            onChange={(v) => setForm((f) => ({ ...f, category: v }))}
-          />
-          <Field
+          <label className="block text-sm">
+            <span className="font-semibold text-slate-700">Category *</span>
+            {categories.length ? (
+              <select
+                required
+                value={form.categoryId || form.category}
+                onChange={(e) => {
+                  const id = e.target.value;
+                  const cat = categories.find((c) => c.id === id);
+                  setForm((f) => ({
+                    ...f,
+                    categoryId: id,
+                    category: cat?.name || "",
+                  }));
+                }}
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-[#0F6B36]/40 focus:ring-2 focus:ring-[#0F6B36]/15"
+              >
+                <option value="">Select category</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <input
+                required
+                value={form.category}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    category: e.target.value,
+                    categoryId: e.target.value,
+                  }))
+                }
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
+                placeholder="Category"
+              />
+            )}
+          </label>          <Field
             label="Location"
             value={form.location}
             onChange={(v) => setForm((f) => ({ ...f, location: v }))}
@@ -220,20 +283,34 @@ function VendorProductsPage() {
           products.map((p) => (
             <li
               key={p.id}
-              className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3"
+              className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm"
             >
-              <div>
-                <p className="font-bold text-slate-900">{p.name}</p>
-                <p className="text-sm text-slate-600">
-                  {p.price || "Get Quote"}
-                  {p.category ? ` · ${p.category}` : ""}
-                </p>
-                <Link
-                  to={`/product/${encodeURIComponent(p.id)}`}
-                  className="mt-1 inline-block text-xs font-semibold text-[#0F6B36] hover:underline"
-                >
-                  View on site
-                </Link>
+              <div className="flex min-w-0 items-center gap-3">
+                {p.imageSrc ? (
+                  <img
+                    src={p.imageSrc}
+                    alt=""
+                    className="h-14 w-14 shrink-0 rounded-xl object-cover"
+                  />
+                ) : (
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-[#f0faf5] text-xs font-bold text-[#0F6B36]">
+                    {(p.name || "?").slice(0, 2).toUpperCase()}
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <p className="truncate font-bold text-slate-900">{p.name}</p>
+                  <p className="text-sm text-slate-600">
+                    {p.price || "Get Quote"}
+                    {p.category ? ` · ${p.category}` : ""}
+                    {p.hidden ? " · Hidden" : ""}
+                  </p>
+                  <Link
+                    to={`/product/${encodeURIComponent(p.id)}`}
+                    className="mt-1 inline-block text-xs font-semibold text-[#0F6B36] hover:underline"
+                  >
+                    View on site
+                  </Link>
+                </div>
               </div>
               <div className="flex gap-2">
                 <button

@@ -9,8 +9,49 @@ import {
 } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { mapProductRecord } from "../lib/mapProduct";
+import { fetchShopById } from "./shopsService";
 
 export const PRODUCTS_COLLECTION = "products";
+
+/**
+ * Resolve missing vendorName from shop docs.
+ * @param {ReturnType<typeof mapProductRecord>[]} products
+ */
+export async function enrichProductsWithShops(products) {
+  if (!products?.length) return products || [];
+  const need = products.filter(
+    (p) =>
+      p.shopId &&
+      (!p.vendorName ||
+        p.vendorName === "Unknown vendor" ||
+        p.vendorName === "Shop")
+  );
+  if (!need.length) return products;
+
+  const cache = new Map();
+  await Promise.all(
+    [...new Set(need.map((p) => p.shopId).filter(Boolean))].map(async (id) => {
+      try {
+        cache.set(id, await fetchShopById(id));
+      } catch {
+        cache.set(id, null);
+      }
+    })
+  );
+
+  return products.map((p) => {
+    if (!p.shopId) return p;
+    if (p.vendorName && p.vendorName !== "Unknown vendor") return p;
+    const shop = cache.get(p.shopId);
+    if (!shop?.shopName) return p;
+    return {
+      ...p,
+      vendorName: shop.shopName,
+      vendorLocation: p.location || shop.location || "",
+      location: p.location || (shop.location !== "—" ? shop.location : ""),
+    };
+  });
+}
 
 /**
  * @param {import("firebase/firestore").QueryDocumentSnapshot | null} lastDoc
@@ -33,12 +74,14 @@ export async function fetchProducts(lastDoc = null) {
 
   const snapshot = await getDocs(q);
 
+  const products = snapshot.docs
+    .map((docSnap) =>
+      mapProductRecord({ id: docSnap.id, ...docSnap.data() }, docSnap.id)
+    )
+    .filter((p) => !p.hidden);
+
   return {
-    products: snapshot.docs
-      .map((docSnap) =>
-        mapProductRecord({ id: docSnap.id, ...docSnap.data() }, docSnap.id)
-      )
-      .filter((p) => !p.hidden),
+    products: await enrichProductsWithShops(products),
     lastDoc: snapshot.docs[snapshot.docs.length - 1] || null,
   };
 }
@@ -68,11 +111,12 @@ export async function fetchProductsByShopId(shopId, max = 40, opts = {}) {
       );
       const snapshot = await getDocs(q);
       if (snapshot.empty) continue;
-      return snapshot.docs
+      const rows = snapshot.docs
         .map((docSnap) =>
           mapProductRecord({ id: docSnap.id, ...docSnap.data() }, docSnap.id)
         )
         .filter(keep);
+      return enrichProductsWithShops(rows);
     } catch {
       /* missing index or field — try next */
     }
@@ -86,7 +130,7 @@ export async function fetchProductsByShopId(shopId, max = 40, opts = {}) {
       limit(100)
     )
   );
-  return snapshot.docs
+  const rows = snapshot.docs
     .map((docSnap) =>
       mapProductRecord({ id: docSnap.id, ...docSnap.data() }, docSnap.id)
     )
@@ -99,4 +143,5 @@ export async function fetchProductsByShopId(shopId, max = 40, opts = {}) {
           String(p.vendor_id || "") === id)
     )
     .slice(0, max);
+  return enrichProductsWithShops(rows);
 }

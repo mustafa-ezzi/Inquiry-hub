@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import AppBottomNav from "../components/AppBottomNav";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
 import { useAuth } from "../context/AuthContext";
@@ -54,7 +55,7 @@ function ProfilePage() {
   });
 
   return (
-    <div className="min-h-screen bg-background text-slate-900">
+    <div className="min-h-screen bg-background pb-24 text-slate-900 md:pb-0">
       <Header brand={siteContent.brand} searchLabel={siteContent.header.searchLabel} />
       <main className="mx-auto max-w-lg px-4 py-10 pb-16">
         <Link to="/" className="text-sm font-semibold text-[#0F6B36] hover:underline">
@@ -150,6 +151,7 @@ function ProfilePage() {
         socialLinks={siteContent.footer.socialLinks}
         note={siteContent.footer.note}
       />
+      <AppBottomNav activeItemId="profile" />
     </div>
   );
 }

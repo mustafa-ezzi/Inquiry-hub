@@ -3,16 +3,17 @@ import { Link } from "react-router-dom";
 import BrandLogo from "./BrandLogo";
 import Container from "./Container";
 import { footerLinkPath } from "../lib/footerLinks";
-
+import { useSiteConfig } from "../context/SiteConfigContext";
 import { SUPPORT_WHATSAPP_URL } from "../lib/legalContent";
 
-const SOCIAL_HREF = {
-  Facebook: "https://www.facebook.com/",
-  WhatsApp: SUPPORT_WHATSAPP_URL,
-  LinkedIn: "https://www.linkedin.com/",
-};
-
 function Footer({ brand, sections, socialLinks, note }) {
+  const { config } = useSiteConfig();
+  const whatsapp = config?.supportWhatsAppUrl || SUPPORT_WHATSAPP_URL;
+  const socialHref = {
+    Facebook: "https://www.facebook.com/",
+    WhatsApp: whatsapp,
+    LinkedIn: "https://www.linkedin.com/",
+  };
   return (
     <footer className="bg-slate-50 pb-12 pt-10 md:pb-16 md:pt-20">
       <Container>
@@ -35,7 +36,7 @@ function Footer({ brand, sections, socialLinks, note }) {
                 {socialLinks.map((item, index) => (
                   <a
                     key={`${item}-${index}`}
-                    href={SOCIAL_HREF[item] || "#"}
+                    href={socialHref[item] || "#"}
                     target="_blank"
                     rel="noreferrer noopener"
                     aria-label={`Visit our ${item} profile`}

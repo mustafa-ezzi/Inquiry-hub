@@ -1,37 +1,54 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
+import { useAuth } from "../context/AuthContext";
 import { siteContent } from "../data/inquiryData";
-
-const STORAGE_KEY = "vendor_waitlist";
+import { canAccessVendorPortal } from "../lib/accessControl";
+import { submitWaitlist } from "../services/vendorWaitlistService";
 
 function VendorWaitlistPage() {
+  const { user, profile, isAuthenticated } = useAuth();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [shopName, setShopName] = useState("");
+  const [location, setLocation] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
 
-  const handleSubmit = (event) => {
+  useEffect(() => {
+    if (profile?.displayName) setName(profile.displayName);
+    if (profile?.phone) setPhone(profile.phone);
+  }, [profile]);
+
+  const vendorOk = canAccessVendorPortal({
+    uid: user?.uid,
+    role: profile?.role,
+    shopIds: profile?.shopIds,
+  });
+
+  const handleSubmit = async (event) => {
     event.preventDefault();
     setError("");
-    if (!name.trim() || !phone.trim() || !shopName.trim()) {
-      setError("Please fill in name, phone, and shop name.");
+    if (!isAuthenticated || !user?.uid) {
+      setError("Please sign in to join the vendor waitlist.");
       return;
     }
+    setSaving(true);
     try {
-      const prev = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-      const entry = {
-        name: name.trim(),
-        phone: phone.trim(),
-        shopName: shopName.trim(),
-        createdAt: Date.now(),
-      };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify([entry, ...prev]));
+      await submitWaitlist({
+        name,
+        phone,
+        shopName,
+        location,
+        applicantUid: user.uid,
+      });
       setSubmitted(true);
-    } catch {
-      setError("Could not save your request. Try again.");
+    } catch (e) {
+      setError(e?.message || "Could not save your request. Try again.");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -52,20 +69,39 @@ function VendorWaitlistPage() {
         </Link>
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
           <h1 className="text-2xl font-extrabold text-[#111827]">
-            Register as Vendor
+            Become a vendor
           </h1>
           <p className="mt-2 text-sm leading-6 text-slate-600">
-            Full vendor portal arrives in Phase 4. Join the waitlist and we will
-            notify you when onboarding opens.
+            Join the onboarding waitlist. Our team reviews applications and
+            unlocks your shop. If you already have vendor access, open the
+            vendor portal instead.
           </p>
+
+          {vendorOk ? (
+            <Link
+              to="/vendor"
+              className="mt-6 inline-flex min-h-[44px] items-center rounded-xl bg-[#0F6B36] px-5 text-sm font-semibold text-white"
+            >
+              Open vendor portal
+            </Link>
+          ) : null}
+
+          {!isAuthenticated ? (
+            <p className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+              <Link to="/login" className="font-semibold underline">
+                Sign in
+              </Link>{" "}
+              to submit the waitlist form.
+            </p>
+          ) : null}
 
           {submitted ? (
             <p
               className="mt-6 rounded-xl border border-[#0F6B36]/20 bg-[#f0faf5] px-4 py-3 text-sm font-medium text-[#0F6B36]"
               role="status"
             >
-              Thanks — you are on the waitlist. You can also create a basic shop
-              from the home page today.
+              Thanks — you are on the waitlist. We will review and contact you.
+              You can track status updates via support if needed.
             </p>
           ) : (
             <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
@@ -76,15 +112,17 @@ function VendorWaitlistPage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   autoComplete="name"
+                  required
                 />
               </label>
               <label className="block text-sm font-semibold text-slate-700">
-                Phone
+                Phone / WhatsApp
                 <input
                   className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   autoComplete="tel"
+                  required
                 />
               </label>
               <label className="block text-sm font-semibold text-slate-700">
@@ -93,18 +131,28 @@ function VendorWaitlistPage() {
                   className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
                   value={shopName}
                   onChange={(e) => setShopName(e.target.value)}
+                  required
+                />
+              </label>
+              <label className="block text-sm font-semibold text-slate-700">
+                City / location
+                <input
+                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
                 />
               </label>
               {error ? (
-                <p className="text-sm text-red-600" role="alert">
+                <p className="text-sm text-rose-600" role="alert">
                   {error}
                 </p>
               ) : null}
               <button
                 type="submit"
-                className="min-h-[44px] w-full rounded-xl bg-[#0F6B36] px-4 py-2.5 text-sm font-semibold text-white"
+                disabled={saving || !isAuthenticated}
+                className="flex min-h-[48px] w-full items-center justify-center rounded-xl bg-[#0F6B36] text-sm font-bold text-white disabled:opacity-60"
               >
-                Join waitlist
+                {saving ? "Submitting…" : "Join waitlist"}
               </button>
             </form>
           )}

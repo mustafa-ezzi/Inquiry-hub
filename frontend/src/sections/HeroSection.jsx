@@ -8,6 +8,8 @@ function HeroSection({
   description,
   primaryAction,
   secondaryAction,
+  onPrimaryAction,
+  onSecondaryAction,
   searchLabel,
   searchValue,
   onSearchChange,
@@ -87,12 +89,14 @@ function HeroSection({
             <div className="flex flex-wrap gap-2.5">
               <button
                 type="button"
+                onClick={() => onPrimaryAction?.()}
                 className="min-h-[42px] rounded-xl border-[1.5px] border-white/30 bg-white px-5 text-sm font-semibold text-[#0F6B36] transition-all hover:bg-[#f0faf5]"
               >
                 {primaryAction}
               </button>
               <button
                 type="button"
+                onClick={() => onSecondaryAction?.()}
                 className="min-h-[42px] rounded-xl border-[1.5px] border-white/25 bg-white/12 px-5 text-sm font-semibold text-white transition-all hover:bg-white/20"
               >
                 {secondaryAction}

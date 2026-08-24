@@ -2,12 +2,20 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import PwaUpdateScreen from "./components/PwaUpdateScreen";
 import CookieConsentBanner from "./components/CookieConsentBanner";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ScrollToTop from "./components/ScrollToTop";
 import AdminLayout from "./components/admin/AdminLayout";
 import VendorLayout from "./components/vendor/VendorLayout";
 import { AuthProvider } from "./context/AuthContext";
+import { SiteConfigProvider } from "./context/SiteConfigContext";
+import AdminCategoriesPage from "./pages/admin/AdminCategoriesPage";
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
+import AdminInquiriesPage from "./pages/admin/AdminInquiriesPage";
+import AdminProductsPage from "./pages/admin/AdminProductsPage";
 import AdminReportsPage from "./pages/admin/AdminReportsPage";
+import AdminSettingsPage from "./pages/admin/AdminSettingsPage";
 import AdminShopsPage from "./pages/admin/AdminShopsPage";
+import AdminUsersPage from "./pages/admin/AdminUsersPage";
+import AdminWaitlistPage from "./pages/admin/AdminWaitlistPage";
 import HomePage from "./pages/HomePage";
 import InquiriesListPage from "./pages/InquiriesListPage";
 import InquiryChatPage from "./pages/InquiryChatPage";
@@ -29,6 +37,7 @@ import { ROLES } from "./lib/roles";
 export function AppRoutes() {
   return (
     <>
+      <ScrollToTop />
       <PwaUpdateScreen />
       <CookieConsentBanner />
       <Routes>
@@ -83,8 +92,14 @@ export function AppRoutes() {
           }
         >
           <Route index element={<AdminDashboardPage />} />
+          <Route path="waitlist" element={<AdminWaitlistPage />} />
+          <Route path="users" element={<AdminUsersPage />} />
           <Route path="shops" element={<AdminShopsPage />} />
+          <Route path="products" element={<AdminProductsPage />} />
+          <Route path="categories" element={<AdminCategoriesPage />} />
+          <Route path="inquiries" element={<AdminInquiriesPage />} />
           <Route path="reports" element={<AdminReportsPage />} />
+          <Route path="settings" element={<AdminSettingsPage />} />
         </Route>
       </Routes>
     </>
@@ -94,9 +109,11 @@ export function AppRoutes() {
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <AppRoutes />
-      </Router>
+      <SiteConfigProvider>
+        <Router>
+          <AppRoutes />
+        </Router>
+      </SiteConfigProvider>
     </AuthProvider>
   );
 }

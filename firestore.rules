@@ -128,10 +128,14 @@ service cloud.firestore {
 
     match /shops/{shopId} {
       allow read: if true;
+      // Vendors create shops for themselves; admins may create for an applicant (waitlist approve).
       allow create: if signedIn()
-        && request.resource.data.ownerUid == uid()
         && request.resource.data.verified == false
-        && request.resource.data.get('suspended', false) == false;
+        && request.resource.data.get('suspended', false) == false
+        && (
+          isAdmin()
+          || request.resource.data.ownerUid == uid()
+        );
       allow update: if signedIn() && (
         isAdmin()
         || (
@@ -150,6 +154,23 @@ service cloud.firestore {
         && request.resource.data.status == 'open';
       allow update: if isAdmin();
       allow delete: if isAdmin();
+    }
+
+    // —— vendor onboarding waitlist (owner admin) ——
+    match /vendorWaitlist/{id} {
+      allow create: if signedIn()
+        && request.resource.data.status == 'pending'
+        && (
+          !('applicantUid' in request.resource.data)
+          || request.resource.data.applicantUid == uid()
+        );
+      allow read, update, delete: if isAdmin();
+    }
+
+    // —— site config (public read, admin write) ——
+    match /config/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
     // —— private inquiry threads ——

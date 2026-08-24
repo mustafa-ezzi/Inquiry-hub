@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../lib/firebase";
@@ -7,9 +7,10 @@ import { isProductVerified, mapProductRecord } from "../lib/mapProduct";
 import { getPrimaryProductImageUrl } from "../lib/productMedia";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import BottomNav from "../components/BottomNav";
+import AppBottomNav from "../components/AppBottomNav";
 import ReportControl from "../components/ReportControl";
 import { REPORT_TARGET } from "../services/moderationService";
+import { enrichProductsWithShops } from "../services/productService";
 
 /* ── tiny helpers ─────────────────────────────────────────── */
 
@@ -77,22 +78,10 @@ function ErrorState({ message, onBack }) {
 function ProductDetailsPage() {
     const { productId } = useParams();
     const navigate = useNavigate();
-    const [activeBottomNavItem, setActiveBottomNavItem] = useState("home");
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [searchValue, setSearchValue] = useState("");
-
-    const handleBottomNavSelect = useCallback(
-        (itemId) => {
-            setActiveBottomNavItem(itemId);
-            if (itemId === "home") navigate("/");
-            if (itemId === "inquiry") navigate("/inquiries");
-            if (itemId === "profile") navigate("/profile");
-            if (itemId === "categories") navigate("/");
-        },
-        [navigate]
-    );
 
     useEffect(() => {
         const fetchProductDetails = async () => {
@@ -100,12 +89,12 @@ function ProductDetailsPage() {
                 const docRef = doc(db, "products", productId);
                 const docSnap = await getDoc(docRef);
                 if (docSnap.exists()) {
-                    setProduct(
-                        mapProductRecord(
-                            { id: docSnap.id, ...docSnap.data() },
-                            docSnap.id
-                        )
+                    const mapped = mapProductRecord(
+                        { id: docSnap.id, ...docSnap.data() },
+                        docSnap.id
                     );
+                    const [enriched] = await enrichProductsWithShops([mapped]);
+                    setProduct(enriched);
                     setError("");
                 } else {
                     setProduct(null);
@@ -144,13 +133,7 @@ function ProductDetailsPage() {
             note={siteContent.footer.note}
         />
     );
-    const bottomNav = (
-        <BottomNav
-            items={siteContent.bottomNav}
-            activeItemId={activeBottomNavItem}
-            onItemSelect={handleBottomNavSelect}
-        />
-    );
+    const bottomNav = <AppBottomNav />;
 
     if (loading) {
         return (

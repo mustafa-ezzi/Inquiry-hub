@@ -5,9 +5,15 @@ import Container from "./Container";
 import InstallPwaButton from "./InstallPwaButton";
 import SearchBar from "./SearchBar";
 import { useAuth } from "../context/AuthContext";
+import { canAccessAdmin } from "../lib/accessControl";
 
 function Header({ brand, searchLabel, searchValue, onSearchChange }) {
-  const { isAuthenticated, profile, loading } = useAuth();
+  const { isAuthenticated, profile, user, loading } = useAuth();
+  const adminOk = canAccessAdmin({
+    uid: user?.uid,
+    role: profile?.role,
+    shopIds: profile?.shopIds,
+  });
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200/60 bg-white/80 backdrop-blur-md">
@@ -53,13 +59,23 @@ function Header({ brand, searchLabel, searchValue, onSearchChange }) {
               <span className="hidden sm:inline">Messages</span>
             </Link>
             {!loading && isAuthenticated ? (
-              <Link
-                to="/profile"
-                className="inline-flex h-10 max-w-[7.5rem] items-center truncate rounded-xl border border-slate-200 bg-white px-2.5 text-xs font-bold text-slate-700 hover:border-[#0F6B36]/30 hover:bg-[#f0faf5]"
-                title={profile?.displayName || "Profile"}
-              >
-                {profile?.displayName || "Profile"}
-              </Link>
+              <>
+                {adminOk ? (
+                  <Link
+                    to="/admin"
+                    className="hidden sm:inline-flex h-10 items-center rounded-xl border border-slate-900 bg-slate-900 px-2.5 text-xs font-bold text-white hover:bg-slate-800"
+                  >
+                    Admin
+                  </Link>
+                ) : null}
+                <Link
+                  to="/profile"
+                  className="inline-flex h-10 max-w-[7.5rem] items-center truncate rounded-xl border border-slate-200 bg-white px-2.5 text-xs font-bold text-slate-700 hover:border-[#0F6B36]/30 hover:bg-[#f0faf5]"
+                  title={profile?.displayName || "Profile"}
+                >
+                  {profile?.displayName || "Profile"}
+                </Link>
+              </>
             ) : !loading ? (
               <Link
                 to="/login"

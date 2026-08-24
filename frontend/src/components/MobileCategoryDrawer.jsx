@@ -1,4 +1,4 @@
-import { memo, useState } from "react";
+import { memo, useEffect, useState } from "react";
 
 function MobileCategoryDrawer({
   title,
@@ -8,18 +8,24 @@ function MobileCategoryDrawer({
   onSelectCategory,
   onOpenChange,
   isLoading = false,
+  open: openProp,
 }) {
-  const [isOpen, setIsOpen] = useState(false);
+  const isControlled = typeof openProp === "boolean";
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isOpen = isControlled ? openProp : internalOpen;
 
-  const handleOpen = () => {
-    setIsOpen(true);
-    onOpenChange?.(true);
+  useEffect(() => {
+    if (isControlled) return undefined;
+    return undefined;
+  }, [isControlled]);
+
+  const setOpen = (next) => {
+    if (!isControlled) setInternalOpen(next);
+    onOpenChange?.(next);
   };
 
-  const handleClose = () => {
-    setIsOpen(false);
-    onOpenChange?.(false);
-  };
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
 
   const handleSelect = (categoryId) => {
     onSelectCategory(activeCategoryId === categoryId ? null : categoryId);
@@ -28,13 +34,15 @@ function MobileCategoryDrawer({
 
   return (
     <div className="lg:hidden">
-      <button
-        type="button"
-        onClick={handleOpen}
-        className="min-h-[44px] rounded-2xl border border-secondary bg-white px-4 py-3 text-sm font-semibold text-secondary shadow-sm transition-all duration-200 hover:bg-secondary/5 hover:shadow-md"
-      >
-        Browse Categories
-      </button>
+      {!isControlled ? (
+        <button
+          type="button"
+          onClick={handleOpen}
+          className="min-h-[44px] rounded-2xl border border-secondary bg-white px-4 py-3 text-sm font-semibold text-secondary shadow-sm transition-all duration-200 hover:bg-secondary/5 hover:shadow-md"
+        >
+          Browse Categories
+        </button>
+      ) : null}
 
       {isOpen ? (
         <div className="fixed inset-0 z-50 bg-[#111827]/40">

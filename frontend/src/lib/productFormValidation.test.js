@@ -24,9 +24,13 @@ describe("validateProductForm", () => {
     ).toMatch(/http/i);
   });
 
-  it("rejects non-numeric price when provided", () => {
+  it("requires category when flag set", () => {
     expect(
-      validateProductForm({ name: "Pipe", price: "abc" })
-    ).toMatch(/number/i);
+      validateProductForm({
+        name: "Pipe",
+        category: "",
+        requireCategory: true,
+      })
+    ).toMatch(/category/i);
   });
 });

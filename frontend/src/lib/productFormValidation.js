@@ -1,4 +1,4 @@
-/** Vendor product form validation (Phase 4 MVP). */
+/** Vendor / admin product form validation. */
 
 export function validateProductForm({
   name,
@@ -6,6 +6,7 @@ export function validateProductForm({
   description,
   category,
   imageUrl,
+  requireCategory = false,
 }) {
   const n = typeof name === "string" ? name.trim() : "";
   if (n.length < 2 || n.length > 160) {
@@ -16,6 +17,9 @@ export function validateProductForm({
     return "Description must be at most 2000 characters.";
   }
   const cat = typeof category === "string" ? category.trim() : "";
+  if (requireCategory && !cat) {
+    return "Please select a category.";
+  }
   if (cat.length > 80) {
     return "Category is too long.";
   }

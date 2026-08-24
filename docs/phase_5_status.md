@@ -9,6 +9,7 @@
 - [x] Analytics facade (`inquiry_created`, `first_vendor_reply`, …)
 - [x] Support channel on Contact + WhatsApp footer link
 - [x] Ops runbook: [`ops_runbook.md`](./ops_runbook.md)
+- [x] Owner console expansion (waitlist, users, catalog, settings): [`admin_panel.md`](./admin_panel.md)
 
 ## Deploy
 

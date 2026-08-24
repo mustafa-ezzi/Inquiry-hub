@@ -37,6 +37,7 @@ export function mapShopForCard(id, data = {}) {
     repliesQuickly: metrics.repliesQuickly,
     responseMetrics: metrics,
     ownerUid: data.ownerUid || "",
+    memberUids: Array.isArray(data.memberUids) ? data.memberUids : [],
     viewShopLabel: "View shop",
   };
 }

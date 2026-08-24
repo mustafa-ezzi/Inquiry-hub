@@ -120,5 +120,7 @@ describe("productService + shopsService fetches", () => {
     const rows = await fetchCategories();
     expect(rows.map((r) => r.name)).toEqual(["Pipes", "Bolts"]);
     expect(typeof rows[0].icon).toBe("function");
+    expect(rows[0].iconKey).toBe("pipe");
+    expect(rows[0].sortOrder).toBe(1);
   });
 });

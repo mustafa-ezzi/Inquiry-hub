@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import BottomNav from "../components/BottomNav";
+import AppBottomNav from "../components/AppBottomNav";
 import Footer from "../components/Footer";
 import FilterBar from "../components/FilterBar";
 import Header from "../components/Header";
@@ -15,6 +15,7 @@ import { fetchCategories } from "../services/categoriesService";
 import { fetchProducts } from "../services/productService";
 import { fetchShops } from "../services/shopsService";
 import CTASection from "../sections/CTASection";
+import { useSiteConfig } from "../context/SiteConfigContext";
 import FeaturedProductsSection from "../sections/FeaturedProductsSection";
 import HeroSection from "../sections/HeroSection";
 import HowItWorks from "../sections/HowItWorks";
@@ -24,6 +25,7 @@ import WhyChooseUs from "../sections/WhyChooseUs";
 function HomePage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { config: siteConfig } = useSiteConfig();
   const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
   const [activeCategoryId, setActiveCategoryId] = useState(null);
   const [locationFilter, setLocationFilter] = useState("");
@@ -42,7 +44,7 @@ function HomePage() {
   const [categories, setCategories] = useState([]);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
   const [categoriesError, setCategoriesError] = useState("");
-
+  const [categoryDrawerOpen, setCategoryDrawerOpen] = useState(false);
   const loadCategories = useCallback(async () => {
     setCategoriesError("");
     try {
@@ -60,6 +62,13 @@ function HomePage() {
   useEffect(() => {
     loadCategories();
   }, [loadCategories]);
+
+  useEffect(() => {
+    if (searchParams.get("categories") === "1") {
+      setCategoryDrawerOpen(true);
+      setActiveBottomNavItem("categories");
+    }
+  }, [searchParams]);
 
   const loadShops = useCallback(async () => {
     setShopsError("");
@@ -249,7 +258,13 @@ function HomePage() {
   }, []);
 
   const handleMobileDrawerChange = useCallback((isOpen) => {
+    setCategoryDrawerOpen(isOpen);
     setActiveBottomNavItem(isOpen ? "categories" : "home");
+  }, []);
+
+  const openCategories = useCallback(() => {
+    setCategoryDrawerOpen(true);
+    setActiveBottomNavItem("categories");
   }, []);
 
   const handleCategoryFilterChange = useCallback((event) => {
@@ -272,22 +287,15 @@ function HomePage() {
     [navigate]
   );
 
-  const handleBottomNavSelect = useCallback(
-    (itemId) => {
-      setActiveBottomNavItem(itemId);
-      if (itemId === "home") {
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      }
-      if (itemId === "inquiry") navigate("/inquiries");
-      if (itemId === "profile") navigate("/profile");
-      if (itemId === "categories") {
-        document
-          .getElementById("top")
-          ?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
-    },
-    [navigate]
-  );
+  const handlePrimaryHero = useCallback(() => {
+    document
+      .getElementById("featured-products")
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, []);
+
+  const handleSecondaryHero = useCallback(() => {
+    openCategories();
+  }, [openCategories]);
 
   const filterBar = useMemo(
     () => (
@@ -333,6 +341,8 @@ function HomePage() {
           {...heroData}
           searchValue={searchQuery}
           onSearchChange={handleSearchChange}
+          onPrimaryAction={handlePrimaryHero}
+          onSecondaryAction={handleSecondaryHero}
         />
         <div className="mx-auto flex max-w-container flex-col gap-6 px-4 md:px-8 lg:flex-row lg:items-start lg:gap-5">
           <SidebarCategories
@@ -358,22 +368,32 @@ function HomePage() {
                 activeCategoryId={activeCategoryId}
                 onSelectCategory={handleCategorySelect}
                 onOpenChange={handleMobileDrawerChange}
+                open={categoryDrawerOpen}
+              />
+              <button
+                type="button"
+                onClick={openCategories}
+                className="min-h-[44px] rounded-2xl border border-secondary bg-white px-4 py-3 text-sm font-semibold text-secondary shadow-sm transition-all duration-200 hover:bg-secondary/5 hover:shadow-md"
+              >
+                Browse Categories
+              </button>
+            </div>
+            <div id="featured-products">
+              <FeaturedProductsSection
+                title={sections.products.title}
+                description={sections.products.description}
+                emptyStateTitle={sections.products.emptyStateTitle}
+                emptyStateDescription={sections.products.emptyStateDescription}
+                isLoading={isLoadingProducts}
+                errorMessage={productLoadError}
+                filterBar={filterBar}
+                onInquiry={handleInquiry}
+                items={filteredProducts}
+                loaderRef={observerRef}
+                isFetchingMore={isFetchingMore}
+                hasMore={hasMore}
               />
             </div>
-            <FeaturedProductsSection
-              title={sections.products.title}
-              description={sections.products.description}
-              emptyStateTitle={sections.products.emptyStateTitle}
-              emptyStateDescription={sections.products.emptyStateDescription}
-              isLoading={isLoadingProducts}
-              errorMessage={productLoadError}
-              filterBar={filterBar}
-              onInquiry={handleInquiry}
-              items={filteredProducts}
-              loaderRef={observerRef}
-              isFetchingMore={isFetchingMore}
-              hasMore={hasMore}
-            />
             <TopVendorsSection
               title={sections.vendors.title}
               description={sections.vendors.description}
@@ -395,7 +415,8 @@ function HomePage() {
             <CTASection
               title={sections.cta.title}
               description={sections.cta.description}
-              actionLabel={sections.cta.actionLabel}
+              actionLabel={siteConfig.ctaLabel || sections.cta.actionLabel}
+              to={siteConfig.ctaTo || "/vendor-waitlist"}
             />
           </div>
         </div>
@@ -408,10 +429,9 @@ function HomePage() {
         note={siteContent.footer.note}
       />
 
-      <BottomNav
-        items={siteContent.bottomNav}
+      <AppBottomNav
         activeItemId={activeBottomNavItem}
-        onItemSelect={handleBottomNavSelect}
+        onCategories={openCategories}
       />
     </div>
   );

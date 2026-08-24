@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { siteContent } from "../data/inquiryData";
 import { useAuth } from "../context/AuthContext";
 import { fetchMessages, listUserInquiries } from "../services/inquiryChatApi";
-import BottomNav from "../components/BottomNav";
+import AppBottomNav from "../components/AppBottomNav";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import InquiryMessageThread from "../components/inquiry/InquiryMessageThread";
@@ -36,26 +36,35 @@ function formatUpdated(ts) {
 
 function InquiriesListPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [expandedId, setExpandedId] = useState(null);
   const [previewByProduct, setPreviewByProduct] = useState({});
   const [loadingPreview, setLoadingPreview] = useState(null);
-  const [activeBottomNavItem, setActiveBottomNavItem] = useState("inquiry");
 
   const load = useCallback(async () => {
+    if (authLoading) return;
+    if (!user?.uid) {
+      setItems([]);
+      setLoading(false);
+      setError("Sign in to see your inquiries.");
+      return;
+    }
     setLoading(true);
+    setError("");
     try {
-      const list = await listUserInquiries({ buyerUid: user?.uid });
+      const list = await listUserInquiries({ buyerUid: user.uid });
       setItems(list);
     } catch (e) {
       console.error(e);
       setItems([]);
+      setError(e?.message || "Could not load inquiries.");
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user?.uid, authLoading]);
 
   useEffect(() => {
     void load();
@@ -114,21 +123,6 @@ function InquiriesListPage() {
     [navigate]
   );
 
-  const bottomNav = useMemo(
-    () => (
-      <BottomNav
-        items={siteContent.bottomNav}
-        activeItemId={activeBottomNavItem}
-        onItemSelect={(id) => {
-          setActiveBottomNavItem(id);
-          if (id === "home" || id === "categories") navigate("/");
-          else if (id === "inquiry") void load();
-        }}
-      />
-    ),
-    [activeBottomNavItem, load, navigate]
-  );
-
   return (
     <div className="min-h-screen bg-background pb-24 text-slate-900 md:pb-0">
       <Header
@@ -158,7 +152,13 @@ function InquiriesListPage() {
           </button>
         </div>
 
-        {loading ? (
+        {error ? (
+          <p className="mb-4 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
+            {error}
+          </p>
+        ) : null}
+
+        {loading || authLoading ? (
           <div className="flex justify-center py-20">
             <div className="h-9 w-9 animate-spin rounded-full border-2 border-[#0F6B36] border-t-transparent" />
           </div>
@@ -183,7 +183,7 @@ function InquiriesListPage() {
               const preview = previewByProduct[row.productId];
               return (
                 <li
-                  key={row.productId}
+                  key={row.inquiryId || row.productId}
                   className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
                 >
                   <button
@@ -275,7 +275,7 @@ function InquiriesListPage() {
         socialLinks={siteContent.footer.socialLinks}
         note={siteContent.footer.note}
       />
-      {bottomNav}
+      <AppBottomNav activeItemId="inquiry" />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import BottomNav from "../components/BottomNav";
+import AppBottomNav from "../components/AppBottomNav";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
 import ProductGrid from "../components/ProductGrid";
@@ -15,7 +15,6 @@ function ShopPage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [activeBottomNavItem, setActiveBottomNavItem] = useState("home");
 
   useEffect(() => {
     let mounted = true;
@@ -51,16 +50,6 @@ function ShopPage() {
       mounted = false;
     };
   }, [shopId]);
-
-  const handleBottomNavSelect = useCallback(
-    (itemId) => {
-      setActiveBottomNavItem(itemId);
-      if (itemId === "home") navigate("/");
-      if (itemId === "inquiry") navigate("/inquiries");
-      if (itemId === "profile") navigate("/profile");
-    },
-    [navigate]
-  );
 
   const handleInquiry = useCallback(
     (product) => {
@@ -165,11 +154,7 @@ function ShopPage() {
         socialLinks={siteContent.footer.socialLinks}
         note={siteContent.footer.note}
       />
-      <BottomNav
-        items={siteContent.bottomNav}
-        activeItemId={activeBottomNavItem}
-        onItemSelect={handleBottomNavSelect}
-      />
+      <AppBottomNav />
     </div>
   );
 }

@@ -81,6 +81,7 @@ export function mapInquiryDoc(id, data = {}) {
     status: data.status || INQUIRY_STATUS.OPEN,
     preview: data.preview || "",
     updatedAt,
+    hidden: Boolean(data.hidden),
     messages: [],
   };
 }
@@ -213,11 +214,41 @@ export async function createFirestoreInquiry({
  */
 export async function listBuyerInquiries(buyerUid) {
   if (!buyerUid) return [];
+  try {
+    const q = query(
+      collection(db, INQUIRIES_COLLECTION),
+      where("buyerUid", "==", buyerUid),
+      orderBy("updatedAt", "desc"),
+      limit(50)
+    );
+    const snap = await getDocs(q);
+    return snap.docs
+      .map((d) => mapInquiryDoc(d.id, d.data()))
+      .filter((r) => !r.hidden && r.productId);
+  } catch (err) {
+    console.warn("listBuyerInquiries ordered query failed, falling back", err);
+    const q = query(
+      collection(db, INQUIRIES_COLLECTION),
+      where("buyerUid", "==", buyerUid),
+      limit(50)
+    );
+    const snap = await getDocs(q);
+    return snap.docs
+      .map((d) => mapInquiryDoc(d.id, d.data()))
+      .filter((r) => !r.hidden && r.productId)
+      .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+  }
+}
+
+/**
+ * Admin: recent inquiries across the platform.
+ * @param {number} [max]
+ */
+export async function listRecentInquiries(max = 50) {
   const q = query(
     collection(db, INQUIRIES_COLLECTION),
-    where("buyerUid", "==", buyerUid),
     orderBy("updatedAt", "desc"),
-    limit(50)
+    limit(max)
   );
   const snap = await getDocs(q);
   return snap.docs.map((d) => mapInquiryDoc(d.id, d.data()));

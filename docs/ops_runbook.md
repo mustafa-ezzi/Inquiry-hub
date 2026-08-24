@@ -35,8 +35,15 @@ Only admins can change `verified` (Firestore rules).
 
 ## Support channel
 
-- Email: `hello@inquirehub.pk` (Contact page)
-- WhatsApp stub: see `frontend/src/lib/legalContent.js` (`SUPPORT_WHATSAPP_URL`) — replace before GA
+- Defaults: `frontend/src/lib/legalContent.js`
+- Live overrides: Admin → **Settings** (`config/site`) — email, WhatsApp URL, homepage CTA
+- See [`admin_panel.md`](./admin_panel.md) for waitlist approve and full owner console
+
+## Vendor waitlist
+
+1. Applicant signs in → `/vendor-waitlist` → creates `vendorWaitlist/{id}` (`pending`).
+2. `/admin/waitlist` → filter status → **Approve** (creates shop + vendor membership when `applicantUid` is set), **Reject**, or **Contacted** + notes.
+3. Deploy rules/indexes after first rollout: `firebase deploy --only firestore:rules,firestore:indexes`
 
 ## Related runbooks
 

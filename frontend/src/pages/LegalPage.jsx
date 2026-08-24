@@ -1,11 +1,13 @@
 import { Link, useLocation } from "react-router-dom";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
+import { useSiteConfig } from "../context/SiteConfigContext";
 import { siteContent } from "../data/inquiryData";
 import { LEGAL_CONTENT } from "../lib/legalContent";
 
 function LegalPage() {
   const { pathname } = useLocation();
+  const { config } = useSiteConfig();
   const page = LEGAL_CONTENT[pathname];
 
   const title = page?.title || "Page";
@@ -15,6 +17,10 @@ function LegalPage() {
       body: "This page is not available yet. Please return to the home page.",
     },
   ];
+  const supportEmail =
+    config?.supportEmail || page?.supportEmail || "";
+  const supportWhatsApp =
+    config?.supportWhatsAppUrl || page?.supportWhatsApp || "";
 
   return (
     <div className="min-h-screen bg-background text-slate-900">
@@ -50,19 +56,19 @@ function LegalPage() {
               </section>
             ))}
           </div>
-          {page?.supportEmail || page?.supportWhatsApp ? (
+          {supportEmail || supportWhatsApp ? (
             <div className="mt-8 flex flex-wrap gap-3">
-              {page.supportEmail ? (
+              {supportEmail ? (
                 <a
-                  href={`mailto:${page.supportEmail}`}
+                  href={`mailto:${supportEmail}`}
                   className="inline-flex min-h-[44px] items-center rounded-xl bg-[#0F6B36] px-4 text-sm font-semibold text-white"
                 >
                   Email support
                 </a>
               ) : null}
-              {page.supportWhatsApp ? (
+              {supportWhatsApp ? (
                 <a
-                  href={page.supportWhatsApp}
+                  href={supportWhatsApp}
                   target="_blank"
                   rel="noreferrer noopener"
                   className="inline-flex min-h-[44px] items-center rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-800"
