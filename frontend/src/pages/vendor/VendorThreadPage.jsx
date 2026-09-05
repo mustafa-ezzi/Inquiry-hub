@@ -102,7 +102,7 @@ function VendorThreadPage() {
           to="/vendor/inbox"
           className="text-sm font-semibold text-[#0F6B36] hover:underline"
         >
-          ← Inbox
+          ← Leads
         </Link>
         <p className="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
           {loadError}
@@ -112,13 +112,13 @@ function VendorThreadPage() {
   }
 
   return (
-    <div className="flex min-h-[70vh] flex-col">
+    <div className="flex min-h-[60vh] flex-col pb-4">
       <div className="mb-4">
         <Link
           to="/vendor/inbox"
           className="text-sm font-semibold text-[#0F6B36] hover:underline"
         >
-          ← Inbox
+          ← Leads
         </Link>
         <h1 className="mt-2 text-xl font-extrabold text-slate-900">
           {inquiry?.productName || "Lead"}

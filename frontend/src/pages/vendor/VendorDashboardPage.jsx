@@ -64,7 +64,7 @@ function VendorDashboardPage() {
               to="/vendor/inbox"
               className="inline-flex min-h-[44px] items-center rounded-xl bg-[#0F6B36] px-5 text-sm font-semibold text-white hover:bg-[#0d5f30]"
             >
-              Open inbox
+              Open leads
             </Link>
             <Link
               to="/vendor/products"

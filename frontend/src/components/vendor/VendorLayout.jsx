@@ -1,6 +1,7 @@
-import { Link, NavLink, Outlet } from "react-router-dom";
+import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { siteContent } from "../../data/inquiryData";
+import { mapCategoryIcon } from "../../lib/categoryIcons";
 import BrandLogo from "../BrandLogo";
 
 const navClass = ({ isActive }) =>
@@ -11,14 +12,16 @@ const navClass = ({ isActive }) =>
       : "text-slate-600 hover:bg-[#f0faf5] hover:text-[#0F6B36]",
   ].join(" ");
 
-const bottomClass = ({ isActive }) =>
-  [
-    "flex flex-1 flex-col items-center gap-0.5 py-2 text-[10px] font-bold uppercase tracking-wide",
-    isActive ? "text-[#0F6B36]" : "text-slate-500",
-  ].join(" ");
+const BOTTOM_ITEMS = [
+  { to: "/vendor", end: true, id: "home", label: "Home" },
+  { to: "/vendor/inbox", end: false, id: "inquiry", label: "Leads" },
+  { to: "/vendor/products", end: false, id: "hammer", label: "Products" },
+  { to: "/vendor/shop", end: false, id: "hard-hat", label: "Shop" },
+];
 
 function VendorLayout() {
   const { profile, logout } = useAuth();
+  const { pathname } = useLocation();
   const shopId = profile?.shopIds?.[0] || "";
 
   return (
@@ -36,7 +39,7 @@ function VendorLayout() {
               Dashboard
             </NavLink>
             <NavLink to="/vendor/inbox" className={navClass}>
-              Inbox
+              Leads
             </NavLink>
             <NavLink to="/vendor/products" className={navClass}>
               Products
@@ -81,26 +84,48 @@ function VendorLayout() {
         </div>
       ) : null}
 
-      <main className="mx-auto max-w-6xl px-4 py-6 pb-24 md:pb-16">
+      <main className="mx-auto max-w-6xl px-4 py-6 pb-28 md:pb-16">
         <Outlet context={{ shopId, profile }} />
       </main>
 
-      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur md:hidden">
-        <div className="mx-auto flex max-w-lg">
-          <NavLink to="/vendor" end className={bottomClass}>
-            Home
-          </NavLink>
-          <NavLink to="/vendor/inbox" className={bottomClass}>
-            Inbox
-          </NavLink>
-          <NavLink to="/vendor/products" className={bottomClass}>
-            Products
-          </NavLink>
-          <NavLink to="/vendor/shop" className={bottomClass}>
-            Shop
-          </NavLink>
-        </div>
-      </nav>
+      {/* Mobile bottom nav — always mounted for all /vendor/* routes */}
+      <div
+        className="fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-background/95 backdrop-blur md:hidden"
+        style={{
+          paddingBottom: "env(safe-area-inset-bottom, 0px)",
+        }}
+      >
+        <nav
+          aria-label="Vendor"
+          className="mx-auto grid max-w-lg grid-cols-4 gap-2 px-3 py-3"
+        >
+          {BOTTOM_ITEMS.map((item) => {
+            const Icon = mapCategoryIcon(item.id);
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.end}
+                className={({ isActive }) => {
+                  const active =
+                    isActive ||
+                    (item.to === "/vendor/inbox" &&
+                      pathname.startsWith("/vendor/inbox"));
+                  return [
+                    "flex min-h-[48px] flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-xs font-medium shadow-sm transition-all duration-200",
+                    active
+                      ? "bg-[#0F6B36] text-white shadow-md"
+                      : "bg-white text-[#6b7280] hover:text-[#0F6B36]",
+                  ].join(" ");
+                }}
+              >
+                <Icon className="h-4 w-4" />
+                <span className="truncate">{item.label}</span>
+              </NavLink>
+            );
+          })}
+        </nav>
+      </div>
     </div>
   );
 }
