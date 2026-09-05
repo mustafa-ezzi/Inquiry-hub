@@ -1,8 +1,57 @@
 rules_version = '2';
 
-// Storage locked down until Phase 4 product image uploads.
+// Product images for vendor portal uploads.
+// Deploy: firebase deploy --only storage
 service firebase.storage {
   match /b/{bucket}/o {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function userDoc() {
+      return get(/databases/(default)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isAdmin() {
+      return signedIn()
+        && exists(/databases/(default)/documents/users/$(request.auth.uid))
+        && userDoc().role == 'admin';
+    }
+
+    function shopIds() {
+      return signedIn()
+        && exists(/databases/(default)/documents/users/$(request.auth.uid))
+        ? userDoc().get('shopIds', [])
+        : [];
+    }
+
+    function isShopMember(shopId) {
+      return shopId in shopIds()
+        || (
+          exists(/databases/(default)/documents/shops/$(shopId))
+          && get(/databases/(default)/documents/shops/$(shopId)).data.ownerUid
+            == request.auth.uid
+        );
+    }
+
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+
+    function underMaxSize() {
+      return request.resource.size < 5 * 1024 * 1024;
+    }
+
+    // Public catalog reads; shop members / admins may upload.
+    match /product-images/{shopId}/{fileName} {
+      allow read: if true;
+      allow create, update: if signedIn()
+        && (isAdmin() || isShopMember(shopId))
+        && isImage()
+        && underMaxSize();
+      allow delete: if signedIn() && (isAdmin() || isShopMember(shopId));
+    }
+
     match /{allPaths=**} {
       allow read, write: if false;
     }

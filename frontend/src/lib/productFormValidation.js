@@ -26,7 +26,7 @@ export function validateProductForm({
   if (imageUrl && typeof imageUrl === "string") {
     const u = imageUrl.trim();
     if (u && !/^https?:\/\//i.test(u)) {
-      return "Image URL must start with http:// or https://";
+      return "Image must be a valid uploaded URL.";
     }
   }
   if (price != null && price !== "") {

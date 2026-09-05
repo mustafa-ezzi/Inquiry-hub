@@ -46,7 +46,7 @@ Files:
 
 - `firestore.rules`
 - `firestore.indexes.json`
-- `storage.rules` (deny-all until Phase 4 uploads)
+- `storage.rules` — product image uploads under `product-images/{shopId}/…` for shop members / admins; public read
 - `firebase.json`
 
 ## Policy tests

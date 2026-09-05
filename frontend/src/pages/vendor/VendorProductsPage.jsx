@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useOutletContext } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { validateProductImageFile } from "../../lib/productImageValidation";
 import { fetchCategories } from "../../services/categoriesService";
+import { uploadProductImage } from "../../services/productImageService";
 import {
   createVendorProduct,
   deleteVendorProduct,
@@ -31,6 +33,8 @@ function VendorProductsPage() {
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(emptyForm);
   const [showForm, setShowForm] = useState(false);
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState("");
 
   const load = useCallback(async () => {
     if (!shopId) {
@@ -71,9 +75,22 @@ function VendorProductsPage() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!imageFile) return undefined;
+    const url = URL.createObjectURL(imageFile);
+    setImagePreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [imageFile]);
+
+  const resetImageState = () => {
+    setImageFile(null);
+    setImagePreview("");
+  };
+
   const openCreate = () => {
     setEditingId(null);
     setForm(emptyForm);
+    resetImageState();
     setFormError("");
     setShowForm(true);
   };
@@ -91,8 +108,32 @@ function VendorProductsPage() {
       imageUrl: p.imageSrc || "",
       location: p.location || "",
     });
+    setImageFile(null);
+    setImagePreview(p.imageSrc || "");
     setFormError("");
     setShowForm(true);
+  };
+
+  const onImageChange = (e) => {
+    const file = e.target.files?.[0] || null;
+    if (!file) {
+      setImageFile(null);
+      return;
+    }
+    const err = validateProductImageFile(file);
+    if (err) {
+      setFormError(err);
+      e.target.value = "";
+      return;
+    }
+    setFormError("");
+    setImageFile(file);
+  };
+
+  const clearImage = () => {
+    setImageFile(null);
+    setImagePreview("");
+    setForm((f) => ({ ...f, imageUrl: "" }));
   };
 
   const onSubmit = async (e) => {
@@ -101,8 +142,18 @@ function VendorProductsPage() {
     setSaving(true);
     setFormError("");
     try {
+      let imageUrl = form.imageUrl || "";
+      if (imageFile) {
+        imageUrl = await uploadProductImage({
+          shopId,
+          file: imageFile,
+          productId: editingId || "",
+        });
+      }
+
       const payload = {
         ...form,
+        imageUrl,
         category: form.category,
         categoryId: form.categoryId,
       };
@@ -118,6 +169,7 @@ function VendorProductsPage() {
       setShowForm(false);
       setEditingId(null);
       setForm(emptyForm);
+      resetImageState();
       await load();
     } catch (err) {
       setFormError(err?.message || "Save failed.");
@@ -147,13 +199,16 @@ function VendorProductsPage() {
     );
   }
 
+  const previewSrc = imagePreview || form.imageUrl;
+
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-extrabold text-slate-900">Products</h1>
           <p className="mt-1 text-sm text-slate-600">
-            Create and edit listings. Use an HTTPS image URL for now.
+            Create and edit listings. Upload a product photo (JPG, PNG, WebP, or
+            GIF · max 5 MB).
           </p>
         </div>
         <button
@@ -229,16 +284,55 @@ function VendorProductsPage() {
                 placeholder="Category"
               />
             )}
-          </label>          <Field
+          </label>
+          <Field
             label="Location"
             value={form.location}
             onChange={(v) => setForm((f) => ({ ...f, location: v }))}
           />
-          <Field
-            label="Image URL"
-            value={form.imageUrl}
-            onChange={(v) => setForm((f) => ({ ...f, imageUrl: v }))}
-          />
+
+          <div className="block text-sm">
+            <span className="font-semibold text-slate-700">Product image</span>
+            <div className="mt-2 flex flex-wrap items-start gap-3">
+              <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-dashed border-slate-200 bg-slate-50">
+                {previewSrc ? (
+                  <img
+                    src={previewSrc}
+                    alt="Product preview"
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <span className="px-2 text-center text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                    No image
+                  </span>
+                )}
+              </div>
+              <div className="min-w-0 flex-1 space-y-2">
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  onChange={onImageChange}
+                  className="block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-[#0F6B36] file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-[#0d5f30]"
+                />
+                <p className="text-xs text-slate-500">
+                  JPG, PNG, WebP, or GIF · max 5 MB
+                  {editingId && form.imageUrl && !imageFile
+                    ? " · leave empty to keep the current photo"
+                    : ""}
+                </p>
+                {previewSrc ? (
+                  <button
+                    type="button"
+                    onClick={clearImage}
+                    className="text-xs font-semibold text-rose-700 hover:underline"
+                  >
+                    Remove image
+                  </button>
+                ) : null}
+              </div>
+            </div>
+          </div>
+
           <label className="block text-sm">
             <span className="font-semibold text-slate-700">Description</span>
             <textarea
@@ -259,11 +353,14 @@ function VendorProductsPage() {
               disabled={saving}
               className="min-h-[44px] rounded-xl bg-[#0F6B36] px-4 text-sm font-semibold text-white disabled:opacity-50"
             >
-              {saving ? "Saving…" : "Save"}
+              {saving ? (imageFile ? "Uploading…" : "Saving…") : "Save"}
             </button>
             <button
               type="button"
-              onClick={() => setShowForm(false)}
+              onClick={() => {
+                setShowForm(false);
+                resetImageState();
+              }}
               className="min-h-[44px] rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-700"
             >
               Cancel
